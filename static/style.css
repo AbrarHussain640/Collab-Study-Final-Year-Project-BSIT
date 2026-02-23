@@ -1,0 +1,165 @@
+/* ============================================
+   CollabStudy - Main Stylesheet
+   ============================================ */
+
+/* ---------- Global / Body ---------- */
+
+body {
+    background-color: #0b0e14;
+    color: #d1d5db;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+}
+
+/* ---------- Text Gradient ---------- */
+
+.text-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* ---------- Hero Section (Welcome Page) ---------- */
+
+.hero-section {
+    padding: 100px 0;
+    background: radial-gradient(circle at top right, #1e293b 0%, #0b0e14 60%);
+}
+
+.main-heading {
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -1px;
+}
+
+/* ---------- Button ---------- */
+
+.btn-primary-custom {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    padding: 12px 30px;
+    font-weight: 600;
+    font-size: 1rem;
+    border-radius: 8px;
+    letter-spacing: 0.5px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
+}
+
+.btn-primary-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.35);
+    opacity: 0.92;
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+.btn-primary-custom:active {
+    transform: translateY(0px);
+    box-shadow: none;
+}
+
+/* ---------- Form Controls ---------- */
+
+.form-label {
+    color: #000000;
+    font-size: 1rem;
+    letter-spacing: 0.3px;
+}
+
+.form-control {
+    background-color: #0d1117;
+    border: 1px solid #30363d;
+    color: #e6edf3;
+    font-size: 0.95rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-control::placeholder {
+    color: #949eac;
+}
+
+.form-control:focus {
+    background-color: #0d1117;
+    border-color: #667eea;
+    color: #e6edf3;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.18);
+}
+
+/* ---------- Checkbox ---------- */
+
+.form-check-input {
+    background-color: #0d1117;
+    border-color: #30363d;
+}
+
+.form-check-input:checked {
+    background-color: #667eea;
+    border-color: #667eea;
+}
+
+.form-check-label {
+    color: #8b949e;
+    font-size: 0.88rem;
+}
+
+/* ---------- Links ---------- */
+
+.forgot-link {
+    color: #667eea;
+    font-size: 0.88rem;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.forgot-link:hover {
+    color: #764ba2;
+    text-decoration: underline;
+}
+
+.signup-link {
+    color: #667eea;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.signup-link:hover {
+    color: #764ba2;
+}
+
+/* ---------- Login Card ---------- */
+
+.login-card {
+    background: linear-gradient(145deg, #161b22, #1c2333);
+    border: 1px solid #30363d;
+    border-radius: 20px;
+    box-shadow:
+        0 0 0 1px rgba(59, 130, 246, 0.08),
+        0 20px 60px rgba(0, 0, 0, 0.5),
+        0 0 40px rgba(102, 126, 234, 0.06);
+    overflow: hidden;
+    transition: box-shadow 0.4s ease;
+}
+
+.login-card:hover {
+    box-shadow:
+        0 0 0 1px rgba(102, 126, 234, 0.2),
+        0 25px 70px rgba(0, 0, 0, 0.6),
+        0 0 60px rgba(102, 126, 234, 0.1);
+}
+
+.login-card-body {
+    padding: 2.8rem 2.5rem;
+}
+
+.login-card-body h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.5px;
+}
+
+.login-card-body p {
+    color: #8b949e;
+    font-size: 0.9rem;
+}
+
