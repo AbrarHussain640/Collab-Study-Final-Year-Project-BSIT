@@ -1,17 +1,301 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container py-5">
-    <!-- Welcome Header -->
+<div class="container-fluid py-4">
+    <!-- University Header -->
     <div class="row mb-4">
         <div class="col-12">
-            <h1 class="display-5 fw-bold">
-                Welcome, <span class="text-gradient">Admin</span>
-            </h1>
-            <p class="text-secondary">Here's what's happening with your studies today.</p>
+            <div class="university-header text-center">
+                <h6 class="text-secondary mb-1">INTERNATIONAL ISLAMIC UNIVERSITY ISLAMABAD</h6>
+                <p class="small text-secondary">FACULTY OF COMPUTING AND INFORMATION TECHNOLOGY | DEPARTMENT OF COMPUTER SCIENCE</p>
+                <h1 class="display-4 fw-bold mt-3">
+                    <span class="text-gradient">CollabStudy</span>
+                </h1>
+                <p class="lead">Real-Time Virtual Study Room Platform</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Welcome Banner -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="welcome-card text-center">
+                <h3>Welcome back, <span class="text-gradient">Muhammad Abrar!</span></h3>
+                <p class="mb-0">Student ID: 841-FOC/BSIT/F22-A</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Modules Dashboard -->
+    <div class="row g-4">
+        <!-- Module 1: User & Room Management -->
+        <div class="col-lg-4 col-md-6">
+            <div class="module-card">
+                <div class="module-header">
+                    <div class="module-icon">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <h4>User & Room Management</h4>
+                </div>
+                <div class="module-body">
+                    <ul class="feature-list">
+                        <li><i class="bi bi-shield-check text-success"></i> Secure Authentication</li>
+                        <li><i class="bi bi-door-open"></i> Create / Join Study Rooms</li>
+                        <li><i class="bi bi-lock-fill"></i> Room Access Control</li>
+                        <li><i class="bi bi-person-badge"></i> User Profiles & History</li>
+                    </ul>
+                </div>
+                <div class="module-footer">
+                    <a href="#" class="btn btn-outline-primary-custom w-100">Manage Rooms →</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Module 2: Real-Time Whiteboard -->
+        <div class="col-lg-4 col-md-6">
+            <div class="module-card">
+                <div class="module-header">
+                    <div class="module-icon">
+                        <i class="bi bi-easel-fill"></i>
+                    </div>
+                    <h4>Real-Time Whiteboard</h4>
+                </div>
+                <div class="module-body">
+                    <ul class="feature-list">
+                        <li><i class="bi bi-pencil"></i> Multi-user Drawing</li>
+                        <li><i class="bi bi-brush"></i> Shapes, Text, Colors</li>
+                        <li><i class="bi bi-save"></i> Auto-Save & Export</li>
+                        <li><i class="bi bi-arrow-repeat"></i> Real-Time Sync</li>
+                    </ul>
+                </div>
+                <div class="module-footer">
+                    <a href="#" class="btn btn-outline-primary-custom w-100">Open Whiteboard →</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Module 3: Communication Hub -->
+        <div class="col-lg-4 col-md-6">
+            <div class="module-card">
+                <div class="module-header">
+                    <div class="module-icon">
+                        <i class="bi bi-chat-dots-fill"></i>
+                    </div>
+                    <h4>Communication Hub</h4>
+                </div>
+                <div class="module-body">
+                    <ul class="feature-list">
+                        <li><i class="bi bi-chat-text"></i> Text Chat & History</li>
+                        <li><i class="bi bi-camera-video-fill"></i> Audio/Video Calling</li>
+                        <li><i class="bi bi-share"></i> Screen Sharing</li>
+                        <li><i class="bi bi-emoji-smile"></i> Reactions & Private Chat</li>
+                    </ul>
+                </div>
+                <div class="module-footer">
+                    <a href="#" class="btn btn-outline-primary-custom w-100">Open Chat →</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Module 4: Study Materials -->
+        <div class="col-lg-4 col-md-6">
+            <div class="module-card">
+                <div class="module-header">
+                    <div class="module-icon">
+                        <i class="bi bi-folder2-open-fill"></i>
+                    </div>
+                    <h4>Study Materials</h4>
+                </div>
+                <div class="module-body">
+                    <ul class="feature-list">
+                        <li><i class="bi bi-cloud-upload"></i> Drag & Drop Uploads</li>
+                        <li><i class="bi bi-collection"></i> Shared Repository</li>
+                        <li><i class="bi bi-file-earmark-pdf"></i> PDFs, Images, Notes</li>
+                        <li><i class="bi bi-git"></i> Versioning & Download</li>
+                    </ul>
+                </div>
+                <div class="module-footer">
+                    <a href="#" class="btn btn-outline-primary-custom w-100">Browse Materials →</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Module 5: Focus & Productivity -->
+        <div class="col-lg-4 col-md-6">
+            <div class="module-card">
+                <div class="module-header">
+                    <div class="module-icon">
+                        <i class="bi bi-graph-up"></i>
+                    </div>
+                    <h4>Focus & Productivity</h4>
+                </div>
+                <div class="module-body">
+                    <ul class="feature-list">
+                        <li><i class="bi bi-eyedropper"></i> Study Modes</li>
+                        <li><i class="bi bi-hourglass-split"></i> Timers & Tracking</li>
+                        <li><i class="bi bi-bar-chart"></i> Analytics Dashboard</li>
+                        <li><i class="bi bi-fire"></i> Streaks & Badges</li>
+                    </ul>
+                    <div class="focus-stats text-center mt-2">
+                        <h3 class="text-gradient">127 hrs</h3>
+                        <small>Total Study Time</small>
+                        <div class="streak">
+                            <i class="bi bi-calendar-heart text-danger"></i> 15 Day Streak!
+                        </div>
+                    </div>
+                </div>
+                <div class="module-footer">
+                    <a href="#" class="btn btn-outline-primary-custom w-100">View Analytics →</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Module 6: Interactive Learning -->
+        <div class="col-lg-4 col-md-6">
+            <div class="module-card">
+                <div class="module-header">
+                    <div class="module-icon">
+                        <i class="bi bi-robot"></i>
+                    </div>
+                    <h4>Interactive Learning</h4>
+                </div>
+                <div class="module-body">
+                    <ul class="feature-list">
+                        <li><i class="bi bi-bar-chart-steps"></i> Polls & Quizzes</li>
+                        <li><i class="bi bi-wifi"></i> Breakout Rooms</li>
+                        <li><i class="bi bi-cpu"></i> AI Study Assistant</li>
+                        <li><i class="bi bi-search"></i> Search & Results</li>
+                    </ul>
+                </div>
+                <div class="module-footer">
+                    <a href="#" class="btn btn-outline-primary-custom w-100">AI Assistant →</a>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<!-- CSS Styles -->
+<style>
+    /* Your CSS styles here */
+    .university-header {
+        border-bottom: 2px solid #30363d;
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .welcome-card {
+        background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+        border: 1px solid #30363d;
+        border-radius: 15px;
+        padding: 1.5rem;
+    }
+    
+    .module-card {
+        background: linear-gradient(145deg, #161b22, #1c2333);
+        border: 1px solid #30363d;
+        border-radius: 15px;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+    }
+    
+    .module-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+        border-color: #667eea;
+    }
+    
+    .module-header {
+        padding: 1.25rem 1.5rem 0.5rem 1.5rem;
+        border-bottom: 1px solid #30363d;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .module-icon {
+        width: 45px;
+        height: 45px;
+        background: linear-gradient(135deg, #667eea20, #764ba220);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .module-icon i {
+        font-size: 1.5rem;
+        color: #667eea;
+    }
+    
+    .module-header h4 {
+        font-size: 1.1rem;
+        margin: 0;
+        color: #ffffff;
+    }
+    
+    .module-body {
+        padding: 1.25rem 1.5rem;
+        min-height: 250px;
+    }
+    
+    .feature-list {
+        list-style: none;
+        padding-left: 0;
+        margin-bottom: 0;
+    }
+    
+    .feature-list li {
+        padding: 6px 0;
+        font-size: 0.85rem;
+        color: #d1d5db;
+    }
+    
+    .feature-list li i {
+        margin-right: 8px;
+    }
+    
+    .module-footer {
+        padding: 1rem 1.5rem 1.25rem;
+        border-top: 1px solid #30363d;
+    }
+    
+    .btn-outline-primary-custom {
+        border: 1px solid #667eea;
+        color: #667eea;
+        background: transparent;
+        padding: 8px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-outline-primary-custom:hover {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-color: transparent;
+        color: white;
+    }
+    
+    .focus-stats h3 {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 0;
+    }
+    
+    .text-gradient {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    @media (max-width: 768px) {
+        .module-header {
+            flex-direction: column;
+            text-align: center;
+        }
+    }
+</style>
 
 
 
