@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- ==================== SIDEBAR ==================== -->
+        <div class="col-lg-3 col-xl-2 mb-4">
+            <div class="dashboard-sidebar">
+                <!-- User Profile Summary -->
+                <div class="sidebar-user text-center mb-4">
+                    <div class="avatar-circle mb-2">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                    <h5 class="mb-0">{{ current_user.username }}</h5>
+                    <small class="text-secondary">{{ current_user.email }}</small>
+                    <div class="mt-2">
+                        <span class="badge bg-primary-custom">Student</span>
+                    </div>
+                </div>
+
+                <!-- Navigation Links -->
+                <div class="sidebar-nav">
+                    <div class="nav-item active">
+                        <i class="bi bi-grid-3x3-gap-fill"></i>
+                        <span>Dashboard</span>
+                    </div>
+                    <div class="nav-item">
+                        <i class="bi bi-door-open-fill"></i>
+                        <span>My Rooms</span>
+                    </div>
+                    <div class="nav-item">
+                        <i class="bi bi-easel-fill"></i>
+                        <span>Whiteboard</span>
+                    </div>
+                    <div class="nav-item">
+                        <i class="bi bi-chat-dots-fill"></i>
+                        <span>Chat Hub</span>
+                    </div>
+                    <div class="nav-item">
+                        <i class="bi bi-folder2-open-fill"></i>
+                        <span>Materials</span>
+                    </div>
+                    <div class="nav-item">
+                        <i class="bi bi-graph-up"></i>
+                        <span>Analytics</span>
+                    </div>
+                    <div class="nav-item">
+                        <i class="bi bi-robot"></i>
+                        <span>AI Assistant</span>
+                    </div>
+                </div>
+
+                <hr class="my-3">
+
+                <!-- Quick Actions -->
+                <div class="sidebar-actions">
+                    <a href="#" class="btn btn-outline-primary-custom w-100 mb-2">
+                        <i class="bi bi-plus-circle"></i> Create Room
+                    </a>
+                    <a href="#" class="btn btn-outline-primary-custom w-100 mb-2">
+                        <i class="bi bi-clock-history"></i> Study Timer
+                    </a>
+                    <a href="/logout" class="btn btn-outline-danger w-100">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== MAIN CONTENT ==================== -->
+        <div class="col-lg-9 col-xl-10">
+            <!-- University Header -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="university-header text-center text-lg-start">
+                        <h6 class="text-secondary mb-1">INTERNATIONAL ISLAMIC UNIVERSITY ISLAMABAD</h6>
+                        <p class="small text-secondary">FACULTY OF COMPUTING AND INFORMATION TECHNOLOGY | DEPARTMENT OF COMPUTER SCIENCE</p>
+                        <h1 class="display-4 fw-bold mt-3">
+                            <span class="text-gradient">CollabStudy</span>
+                        </h1>
+                        <p class="lead">Real-Time Virtual Study Room Platform</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Welcome Message -->
+            <div class="welcome-message mb-4">
+                <h3>Welcome back, <span class="text-gradient">{{ current_user.name }}</span>!</h3>
+                <p class="text-secondary">Ready to study together? Here are your modules.</p>
+            </div>
+
+            <!-- Key Modules Dashboard (6 cards) -->
+            <div class="row g-4">
+                <!-- Module 1: User & Room Management -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon">
+                                <i class="bi bi-people-fill"></i>
+                            </div>
+                            <h4>User & Room Management</h4>
+                        </div>
+                        <div class="module-body">
+                            <ul class="feature-list">
+                                <li><i class="bi bi-shield-check text-success"></i> Secure Authentication</li>
+                                <li><i class="bi bi-door-open"></i> Create / Join Study Rooms</li>
+                                <li><i class="bi bi-lock-fill"></i> Room Access Control</li>
+                                <li><i class="bi bi-person-badge"></i> User Profiles & History</li>
+                            </ul>
+                        </div>
+                        <div class="module-footer">
+                            <a href="#" class="btn btn-outline-primary-custom w-100">Manage Rooms →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Module 2: Real-Time Whiteboard -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon">
+                                <i class="bi bi-easel-fill"></i>
+                            </div>
+                            <h4>Real-Time Whiteboard</h4>
+                        </div>
+                        <div class="module-body">
+                            <ul class="feature-list">
+                                <li><i class="bi bi-pencil"></i> Multi-user Drawing</li>
+                                <li><i class="bi bi-brush"></i> Shapes, Text, Colors</li>
+                                <li><i class="bi bi-save"></i> Auto-Save & Export</li>
+                                <li><i class="bi bi-arrow-repeat"></i> Real-Time Sync</li>
+                            </ul>
+                        </div>
+                        <div class="module-footer">
+                            <a href="#" class="btn btn-outline-primary-custom w-100">Open Whiteboard →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Module 3: Communication Hub -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon">
+                                <i class="bi bi-chat-dots-fill"></i>
+                            </div>
+                            <h4>Communication Hub</h4>
+                        </div>
+                        <div class="module-body">
+                            <ul class="feature-list">
+                                <li><i class="bi bi-chat-text"></i> Text Chat & History</li>
+                                <li><i class="bi bi-camera-video-fill"></i> Audio/Video Calling</li>
+                                <li><i class="bi bi-share"></i> Screen Sharing</li>
+                                <li><i class="bi bi-emoji-smile"></i> Reactions & Private Chat</li>
+                            </ul>
+                        </div>
+                        <div class="module-footer">
+                            <a href="#" class="btn btn-outline-primary-custom w-100">Open Chat →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Module 4: Study Materials -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon">
+                                <i class="bi bi-folder2-open-fill"></i>
+                            </div>
+                            <h4>Study Materials</h4>
+                        </div>
+                        <div class="module-body">
+                            <ul class="feature-list">
+                                <li><i class="bi bi-cloud-upload"></i> Drag & Drop Uploads</li>
+                                <li><i class="bi bi-collection"></i> Shared Repository</li>
+                                <li><i class="bi bi-file-earmark-pdf"></i> PDFs, Images, Notes</li>
+                                <li><i class="bi bi-git"></i> Versioning & Download</li>
+                            </ul>
+                        </div>
+                        <div class="module-footer">
+                            <a href="#" class="btn btn-outline-primary-custom w-100">Browse Materials →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Module 5: Focus & Productivity -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon">
+                                <i class="bi bi-graph-up"></i>
+                            </div>
+                            <h4>Focus & Productivity</h4>
+                        </div>
+                        <div class="module-body">
+                            <ul class="feature-list">
+                                <li><i class="bi bi-eyedropper"></i> Study Modes</li>
+                                <li><i class="bi bi-hourglass-split"></i> Timers & Tracking</li>
+                                <li><i class="bi bi-bar-chart"></i> Analytics Dashboard</li>
+                                <li><i class="bi bi-fire"></i> Streaks & Badges</li>
+                            </ul>
+                            <div class="focus-stats text-center mt-2">
+                                <h3 class="text-gradient">127 hrs</h3>
+                                <small>Total Study Time</small>
+                                <div class="streak">
+                                    <i class="bi bi-calendar-heart text-danger"></i> 15 Day Streak!
+                                </div>
+                            </div>
+                        </div>
+                        <div class="module-footer">
+                            <a href="#" class="btn btn-outline-primary-custom w-100">View Analytics →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Module 6: Interactive Learning -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon">
+                                <i class="bi bi-robot"></i>
+                            </div>
+                            <h4>Interactive Learning</h4>
+                        </div>
+                        <div class="module-body">
+                            <ul class="feature-list">
+                                <li><i class="bi bi-bar-chart-steps"></i> Polls & Quizzes</li>
+                                <li><i class="bi bi-wifi"></i> Breakout Rooms</li>
+                                <li><i class="bi bi-cpu"></i> AI Study Assistant</li>
+                                <li><i class="bi bi-search"></i> Search & Results</li>
+                            </ul>
+                        </div>
+                        <div class="module-footer">
+                            <a href="#" class="btn btn-outline-primary-custom w-100">AI Assistant →</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
