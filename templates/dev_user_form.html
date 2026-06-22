@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title text-center">{{ title }} User</h3>
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label>Username</label>
+                            <input type="text" name="username" class="form-control" value="{{ user.username if user else '' }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Email</label>
+                            <input type="email" name="email" class="form-control" value="{{ user.email if user else '' }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Password</label>
+                            <input type="password" name="password" class="form-control" 
+                                   {% if title == 'Add User' %}required{% endif %}
+                                   placeholder="{% if title == 'Edit User' %}Leave blank to keep unchanged (min 8 chars){% else %}Min 8 characters{% endif %}">
+                        </div>
+                        <div class="mb-3">
+                            <label>Confirm Password</label>
+                            <input type="password" name="confirm" class="form-control" 
+                                   {% if title == 'Add User' %}required{% endif %}>
+                        </div>
+                        <button type="submit" class="btn btn-primary-custom w-100">Save User</button>
+                        <a href="/dev/users" class="btn btn-secondary w-100 mt-2">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

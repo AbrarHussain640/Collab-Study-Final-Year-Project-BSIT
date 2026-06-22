@@ -1,0 +1,979 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="room-fullscreen">
+    <!-- Top Bar -->
+    <div class="room-topbar">
+        <div class="room-info">
+            <h4 class="mb-0">{{ room.name }}</h4>
+            <span class="room-code-badge">🔑 {{ room.room_code }}</span>
+        </div>
+        <div class="room-controls">
+            <span class="badge bg-primary-custom me-2">Host: {{ room.creator.username }}</span>
+            <a href="/rooms" class="btn btn-outline-secondary btn-sm">← Leave Room</a>
+        </div>
+    </div>
+
+    <!-- Main Area: Tabs Full Screen + Sidebar (Participants) -->
+    <div class="room-main-full">
+        <!-- Main Content (Tabs) -->
+        <div class="room-content-full">
+            <!-- Tab Navigation -->
+            <ul class="nav nav-tabs content-tabs" id="roomTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="chat-tab" data-bs-toggle="tab" data-bs-target="#chat" type="button" role="tab">
+                        <i class="bi bi-chat-dots-fill"></i> Chat
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="whiteboard-tab" data-bs-toggle="tab" data-bs-target="#whiteboard" type="button" role="tab">
+                        <i class="bi bi-easel-fill"></i> Board
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="share-tab" data-bs-toggle="tab" data-bs-target="#share" type="button" role="tab">
+                        <i class="bi bi-share-fill"></i> Share
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="materials-tab" data-bs-toggle="tab" data-bs-target="#materials" type="button" role="tab">
+                        <i class="bi bi-folder2-open-fill"></i> Files
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content content-area" id="roomTabContent">
+                <!-- Chat Tab -->
+                <div class="tab-pane fade show active" id="chat" role="tabpanel">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="text-center text-secondary p-3" id="chatLoading">Loading messages...</div>
+                    </div>
+                    <div class="chat-input">
+                        <input type="text" class="form-control" id="chatInput" placeholder="Type a message...">
+                        <button class="btn btn-primary-custom" id="sendChatBtn"><i class="bi bi-send"></i></button>
+                    </div>
+                </div>
+
+                <!-- Whiteboard Tab -->
+                <div class="tab-pane fade" id="whiteboard" role="tabpanel">
+                    <div class="whiteboard-wrapper">
+                        <div class="whiteboard-scroll">
+                            <canvas id="whiteboardCanvas" width="1200" height="800"></canvas>
+                        </div>
+                        <div class="whiteboard-tools">
+                            <div class="color-palette">
+                                <button class="color-swatch active" data-color="#ff0000" style="background:#ff0000;"></button>
+                                <button class="color-swatch" data-color="#00ff00" style="background:#00ff00;"></button>
+                                <button class="color-swatch" data-color="#0000ff" style="background:#0000ff;"></button>
+                                <button class="color-swatch" data-color="#ffff00" style="background:#ffff00;"></button>
+                                <button class="color-swatch" data-color="#ff8800" style="background:#ff8800;"></button>
+                                <button class="color-swatch" data-color="#8800ff" style="background:#8800ff;"></button>
+                                <button class="color-swatch" data-color="#000000" style="background:#000000;"></button>
+                                <button class="color-swatch" data-color="#ffffff" style="background:#ffffff; border:1px solid #ccc;"></button>
+                                <button class="color-swatch" id="customColorBtn" style="background: #667eea;">+</button>
+                                <input type="color" id="customColorPicker" style="display:none;">
+                            </div>
+                            <label class="text-secondary small ms-2">Brush:</label>
+                            <input type="range" id="brushWidth" min="1" max="20" value="3" style="width:80px;">
+                            <button class="btn btn-sm btn-outline-secondary" id="clearCanvasBtn">🗑️ Clear</button>
+                            <button class="btn btn-sm btn-outline-success" id="saveCanvasBtn">💾 Save</button>
+                            <button class="btn btn-sm btn-outline-primary" id="exportCanvasBtn">📥 PNG</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Screen Share Tab -->
+                <div class="tab-pane fade" id="share" role="tabpanel">
+                    <div class="text-center p-4">
+                        <i class="bi bi-share-fill" style="font-size: 3rem; color: #667eea;"></i>
+                        <h5 class="mt-3">Screen Sharing</h5>
+                        <p class="text-secondary">Share your screen with everyone in the room.</p>
+                        <button class="btn btn-primary-custom" id="startScreenShareBtn">🔴 Start Screen Share</button>
+                    </div>
+                </div>
+
+                <!-- Study Materials Tab -->
+                <div class="tab-pane fade" id="materials" role="tabpanel">
+                    <div class="materials-container">
+                        <div class="upload-zone" id="uploadZone">
+                            <div class="upload-zone-content">
+                                <i class="bi bi-cloud-upload-fill upload-icon"></i>
+                                <p class="upload-text">Drag & drop files here or click to browse</p>
+                                <p class="upload-subtext text-secondary">Supports PDF, Images, Word, PowerPoint, Excel & more</p>
+                                <input type="file" id="fileInput" multiple style="display:none;">
+                                <button class="btn btn-primary-custom btn-sm mt-2" onclick="document.getElementById('fileInput').click()">
+                                    <i class="bi bi-folder2-open"></i> Select Files
+                                </button>
+                            </div>
+                            <div id="uploadProgress" class="upload-progress" style="display:none;">
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" id="progressBar" style="width:0%;">0%</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="fileListContainer" class="file-list-container mt-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0"><i class="bi bi-files"></i> Shared Files</h6>
+                                <span class="badge bg-secondary" id="fileCount">0</span>
+                            </div>
+                            <div id="fileList" class="file-list">
+                                <div class="text-center text-secondary p-3 small" id="noFilesMsg">No files uploaded yet.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar: Participants List -->
+        <div class="room-sidebar-participants">
+            <div class="sidebar-header">
+                <h6 class="mb-0"><i class="bi bi-people-fill"></i> Participants ({{ room.members|length }})</h6>
+            </div>
+            <div class="participants-list">
+                {% for member in room.members %}
+                <div class="participant-item" data-user-id="{{ member.id }}">
+                    <div class="participant-avatar-small">
+                        <i class="bi bi-person-circle"></i>
+                    </div>
+                    <span class="participant-username">{{ member.username }}</span>
+                    {% if member.id == room.created_by %}
+                    <span class="badge bg-primary-custom ms-auto host-badge-sm">Host</span>
+                    {% endif %}
+                    {% if member.id == current_user.id %}
+                    <span class="badge bg-success ms-auto you-badge-sm">You</span>
+                    {% endif %}
+                    {% if current_user.id == room.created_by and member.id != room.created_by %}
+                    <button class="btn btn-sm permission-toggle" data-user-id="{{ member.id }}" data-username="{{ member.username }}" title="Toggle draw & screen share permission">
+                        <i class="bi bi-lock-fill"></i>
+                    </button>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <div class="sidebar-footer">
+                <div class="tool-status">
+                    <span id="toolStatus"><i class="bi bi-eye"></i> Viewing</span>
+                </div>
+                <div class="control-status">
+                    <span id="controlStatus">🔒 View only</span>
+                </div>
+                <div class="host-controls">
+                    <button class="btn btn-sm btn-primary-custom w-100 mb-1" id="startWhiteboardBtn">🎨 Start Whiteboard</button>
+                    <button class="btn btn-sm btn-primary-custom w-100 mb-1" id="startCallBtn">📞 Start Call</button>
+                    <button class="btn btn-sm btn-outline-secondary w-100" id="endCallBtn" style="display:none;">📞 End Call</button>
+                </div>
+                <div class="call-controls mt-2" id="callControls" style="display:none;">
+                    <button class="btn btn-sm btn-outline-secondary" id="toggleMicBtn"><i class="bi bi-mic-fill"></i> Mute</button>
+                    <button class="btn btn-sm btn-outline-secondary" id="toggleCamBtn"><i class="bi bi-camera-video-fill"></i> Video Off</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Video Grid Overlay (call) -->
+    <div class="video-grid-overlay" id="videoGridOverlay" style="display:none;">
+        <div class="video-grid-header">
+            <h5><i class="bi bi-camera-video-fill"></i> Video Call - {{ room.name }}</h5>
+            <button class="btn btn-sm btn-outline-secondary" id="closeVideoGridBtn">✕ Close</button>
+        </div>
+        <div class="video-grid-container" id="videoGridContainer">
+            <div class="video-wrapper" id="localVideoWrapper">
+                <video id="localVideo" autoplay muted playsinline></video>
+                <div class="video-label">You</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen Share Overlay -->
+    <div class="screen-share-overlay" id="screenShareOverlay" style="display:none;">
+        <div class="screen-share-header">
+            <h5><i class="bi bi-share-fill"></i> Screen Share - {{ room.name }}</h5>
+            <button class="btn btn-sm btn-outline-secondary" id="closeScreenShareBtn">✕ Stop</button>
+        </div>
+        <div class="screen-share-body">
+            <div id="screenFrameContainer"></div>
+            <div class="screen-share-info">
+                <p class="text-secondary">Screen sharing is active. All participants can view.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Fabric.js + Socket.IO -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+
+<script>
+    // =============== GLOBAL STATE ===============
+    var socket = io();
+    var roomId = {{ room.id }};
+    var roomIdStr = String(roomId);
+    var currentUserId = {{ current_user.id }};
+    var isHost = currentUserId == {{ room.created_by }};
+    var isWhiteboardActive = false;
+    var isScreenShareActive = false;
+    var canvas = null;
+    var canControl = false;
+    var screenShareInterval = null;
+    var screenStream = null;
+
+    // WebRTC call state
+    var localStream = null;
+    var remoteStreams = {};
+    var peerConnections = {};
+    var isCallActive = false;
+    var isMicMuted = false;
+    var isCamOff = false;
+    var callStartedBy = null;
+
+    // =============== UPDATE CONTROL UI ===============
+    function updateControlUI(hasControl) {
+        canControl = hasControl || isHost;
+        if (canvas) {
+            canvas.isDrawingMode = canControl;
+            if (!canControl) {
+                canvas.selection = false;
+                canvas.forEachObject(obj => obj.selectable = false);
+                canvas.renderAll();
+            } else {
+                canvas.selection = true;
+                canvas.forEachObject(obj => obj.selectable = true);
+                canvas.renderAll();
+            }
+        }
+        document.getElementById('controlStatus').innerHTML = canControl ? '✅ You can draw and share' : '🔒 View only';
+        document.getElementById('startWhiteboardBtn').disabled = !canControl;
+        document.getElementById('startCallBtn').disabled = !canControl;
+        document.getElementById('startScreenShareBtn').disabled = !canControl;
+        document.querySelector('.host-controls .btn-outline-secondary').disabled = !canControl;
+    }
+
+    // =============== SOCKET.IO ===============
+    socket.on('connect', function() {
+        console.log('✅ Socket.IO connected');
+        socket.emit('join_room', { room_id: roomIdStr });
+    });
+
+    socket.on('joined_room', function(data) {
+        console.log('✅ Joined room:', data.room_id);
+        loadChatHistory();
+        socket.emit('load_whiteboard', { room_id: roomIdStr });
+    });
+
+    // =============== CHAT ===============
+    function loadChatHistory() {
+        socket.emit('load_chat_history', { room_id: roomIdStr });
+    }
+    socket.on('chat_history', function(data) {
+        const chatDiv = document.getElementById('chatMessages');
+        chatDiv.innerHTML = '';
+        if (data.messages.length === 0) {
+            chatDiv.innerHTML = '<div class="text-center text-secondary p-3">No messages yet. Say hello!</div>';
+            return;
+        }
+        data.messages.forEach(msg => {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'chat-message-item small';
+            msgDiv.innerHTML = `
+                <strong class="${msg.user_id == currentUserId ? 'text-primary' : 'text-secondary'}">${msg.username}</strong>
+                <span class="text-secondary" style="font-size:0.65rem;">${msg.timestamp}</span>
+                <br>
+                <span>${msg.message}</span>
+            `;
+            chatDiv.appendChild(msgDiv);
+        });
+        chatDiv.scrollTop = chatDiv.scrollHeight;
+    });
+
+    socket.on('chat_message', function(data) {
+        const chatDiv = document.getElementById('chatMessages');
+        if (chatDiv.querySelector('.text-center')) {
+            chatDiv.innerHTML = '';
+        }
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'chat-message-item small';
+        msgDiv.innerHTML = `
+            <strong class="${data.user_id == currentUserId ? 'text-primary' : 'text-secondary'}">${data.username}</strong>
+            <span class="text-secondary" style="font-size:0.65rem;">${data.timestamp}</span>
+            <br>
+            <span>${data.message}</span>
+        `;
+        chatDiv.appendChild(msgDiv);
+        chatDiv.scrollTop = chatDiv.scrollHeight;
+    });
+
+    // =============== PERMISSION ===============
+    socket.on('permission_update', function(data) {
+        if (data.user_id == currentUserId) {
+            updateControlUI(data.can_control);
+            if (data.can_control && !isHost) {
+                alert('✅ You now have permission to draw and share screen!');
+            } else if (!data.can_control && !isHost) {
+                alert('❌ Permission revoked.');
+            }
+        }
+        if (isHost) {
+            document.querySelectorAll('.permission-toggle').forEach(btn => {
+                const uid = parseInt(btn.dataset.userId);
+                if (uid == data.user_id) {
+                    const icon = btn.querySelector('i');
+                    if (data.can_control) {
+                        icon.className = 'bi bi-unlock-fill text-success';
+                    } else {
+                        icon.className = 'bi bi-lock-fill';
+                    }
+                }
+            });
+        }
+    });
+
+    // =============== WHITEBOARD ===============
+    function initWhiteboard() {
+        if (canvas) return;
+        document.getElementById('whiteboard').style.display = 'block';
+        isWhiteboardActive = true;
+        document.getElementById('toolStatus').innerHTML = '<i class="bi bi-easel-fill text-primary"></i> Whiteboard Active';
+        if (canControl) {
+            socket.emit('tool_started', { room_id: roomIdStr, tool: 'whiteboard' });
+        }
+
+        setTimeout(function() {
+            canvas = new fabric.Canvas('whiteboardCanvas');
+            canvas.isDrawingMode = canControl;
+            canvas.freeDrawingBrush.color = '#ff0000';
+            canvas.freeDrawingBrush.width = 3;
+
+            document.querySelectorAll('.color-swatch').forEach(sw => {
+                sw.addEventListener('click', function() {
+                    canvas.freeDrawingBrush.color = this.dataset.color;
+                    document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            document.getElementById('customColorBtn').addEventListener('click', function() {
+                document.getElementById('customColorPicker').click();
+            });
+            document.getElementById('customColorPicker').addEventListener('input', function(e) {
+                canvas.freeDrawingBrush.color = e.target.value;
+                document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+            });
+
+            document.getElementById('brushWidth').addEventListener('input', function() {
+                canvas.freeDrawingBrush.width = parseInt(this.value);
+            });
+
+            document.getElementById('clearCanvasBtn').addEventListener('click', function() {
+                if (confirm('Clear whiteboard for everyone?')) {
+                    socket.emit('clear_canvas', { room_id: roomIdStr });
+                }
+            });
+
+            document.getElementById('saveCanvasBtn').addEventListener('click', function() {
+                if (canvas) {
+                    socket.emit('save_whiteboard', { room_id: roomIdStr, canvas_data: JSON.stringify(canvas.toJSON()) });
+                    alert('✅ Whiteboard saved!');
+                }
+            });
+
+            document.getElementById('exportCanvasBtn').addEventListener('click', function() {
+                if (canvas) {
+                    const link = document.createElement('a');
+                    link.download = 'whiteboard.png';
+                    link.href = canvas.toDataURL('png');
+                    link.click();
+                }
+            });
+
+            socket.on('draw', function(data) {
+                if (!canvas) return;
+                if (data.type === 'path') {
+                    const path = new fabric.Path(data.path, {
+                        stroke: data.color,
+                        strokeWidth: data.width,
+                        fill: '',
+                        selectable: false,
+                        evented: false,
+                        originX: 'left',
+                        originY: 'top'
+                    });
+                    canvas.add(path);
+                    canvas.renderAll();
+                }
+            });
+
+            socket.on('clear_canvas', function() {
+                if (!canvas) return;
+                canvas.clear();
+                canvas.backgroundColor = 'white';
+                canvas.renderAll();
+            });
+
+            socket.on('load_whiteboard', function(data) {
+                if (data.canvas_data && canvas) {
+                    canvas.loadFromJSON(JSON.parse(data.canvas_data), function() {
+                        canvas.renderAll();
+                        console.log('📥 Loaded saved whiteboard');
+                    });
+                }
+            });
+
+            canvas.on('path:created', function(e) {
+                if (!canControl) return;
+                const path = e.path;
+                socket.emit('draw', {
+                    type: 'path',
+                    path: path.path,
+                    color: canvas.freeDrawingBrush.color,
+                    width: canvas.freeDrawingBrush.width,
+                    room_id: roomIdStr
+                });
+            });
+
+            socket.emit('load_whiteboard', { room_id: roomIdStr });
+            updateControlUI(canControl);
+
+            function resizeCanvas() {
+                const container = document.querySelector('.whiteboard-scroll');
+                if (container && canvas) {
+                    const w = container.clientWidth - 20;
+                    const h = Math.min(600, window.innerHeight * 0.6);
+                    canvas.setWidth(Math.max(800, w));
+                    canvas.setHeight(Math.max(500, h));
+                    canvas.renderAll();
+                }
+            }
+            setTimeout(resizeCanvas, 100);
+            window.addEventListener('resize', resizeCanvas);
+        }, 200);
+    }
+
+    function closeWhiteboard() {
+        if (canvas) { canvas.dispose(); canvas = null; }
+        isWhiteboardActive = false;
+        if (canControl) {
+            socket.emit('tool_stopped', { room_id: roomIdStr, tool: 'whiteboard' });
+        }
+        document.getElementById('toolStatus').innerHTML = '<i class="bi bi-eye"></i> Viewing';
+    }
+
+    // =============== SCREEN SHARE ===============
+    function startScreenShare() {
+        if (!canControl) {
+            alert('You do not have permission to share your screen.');
+            return;
+        }
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+            alert('Screen sharing not supported in this browser.');
+            return;
+        }
+        navigator.mediaDevices.getDisplayMedia({ video: true })
+            .then(stream => {
+                screenStream = stream;
+                document.getElementById('screenShareOverlay').style.display = 'flex';
+                isScreenShareActive = true;
+                socket.emit('screen_share_started', { room_id: roomIdStr });
+                document.getElementById('toolStatus').innerHTML = '<i class="bi bi-share-fill text-success"></i> Screen Share Active';
+
+                const video = document.createElement('video');
+                video.srcObject = stream;
+                video.play();
+                const cvs = document.createElement('canvas');
+                const ctx = cvs.getContext('2d');
+
+                screenShareInterval = setInterval(() => {
+                    cvs.width = video.videoWidth || 640;
+                    cvs.height = video.videoHeight || 480;
+                    ctx.drawImage(video, 0, 0, cvs.width, cvs.height);
+                    const frame = cvs.toDataURL('image/jpeg', 0.3);
+                    socket.emit('screen_frame', { room_id: roomIdStr, frame: frame });
+                }, 500);
+            })
+            .catch(err => {
+                alert('Screen share cancelled or not supported.');
+                closeScreenShare();
+            });
+    }
+
+    function closeScreenShare() {
+        if (screenShareInterval) {
+            clearInterval(screenShareInterval);
+            screenShareInterval = null;
+        }
+        if (screenStream) {
+            screenStream.getTracks().forEach(track => track.stop());
+            screenStream = null;
+        }
+        document.getElementById('screenShareOverlay').style.display = 'none';
+        isScreenShareActive = false;
+        if (canControl) {
+            socket.emit('screen_share_stopped', { room_id: roomIdStr });
+        }
+        document.getElementById('toolStatus').innerHTML = '<i class="bi bi-eye"></i> Viewing';
+    }
+
+    socket.on('screen_frame', function(data) {
+        let img = document.getElementById('screenShareImg');
+        if (!img) {
+            img = document.createElement('img');
+            img.id = 'screenShareImg';
+            img.style.width = '100%';
+            img.style.maxHeight = '80vh';
+            img.style.objectFit = 'contain';
+            document.querySelector('.screen-share-body').prepend(img);
+        }
+        img.src = data.frame;
+    });
+
+    // =============== TOOL EVENTS ===============
+    socket.on('tool_started', function(data) {
+        if (data.tool === 'whiteboard' && !isWhiteboardActive) {
+            initWhiteboard();
+        }
+        if (data.tool === 'screen_share') {
+            document.getElementById('screenShareOverlay').style.display = 'flex';
+            isScreenShareActive = true;
+            document.getElementById('toolStatus').innerHTML = '<i class="bi bi-share-fill text-success"></i> Screen Share Active';
+        }
+    });
+
+    socket.on('tool_stopped', function(data) {
+        if (data.tool === 'whiteboard' && !isHost && isWhiteboardActive) {
+            closeWhiteboard();
+        }
+        if (data.tool === 'screen_share' && !isHost && isScreenShareActive) {
+            closeScreenShare();
+        }
+        if (!isWhiteboardActive && !isScreenShareActive) {
+            document.getElementById('toolStatus').innerHTML = '<i class="bi bi-eye"></i> Viewing';
+        }
+    });
+
+    // =============== CALL LOGIC ===============
+
+    document.getElementById('startCallBtn').addEventListener('click', function() {
+        if (!canControl) {
+            alert('You do not have permission to start a call.');
+            return;
+        }
+        if (isCallActive) return;
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+            .then(stream => {
+                localStream = stream;
+                isCallActive = true;
+                callStartedBy = currentUserId;
+                document.getElementById('videoGridOverlay').style.display = 'flex';
+                document.getElementById('callControls').style.display = 'block';
+                document.getElementById('startCallBtn').style.display = 'none';
+                document.getElementById('endCallBtn').style.display = 'block';
+                document.getElementById('localVideo').srcObject = stream;
+                socket.emit('call_start', { room_id: roomIdStr });
+                socket.emit('call_join', { room_id: roomIdStr });
+                document.getElementById('toggleMicBtn').style.display = 'inline-block';
+                document.getElementById('toggleCamBtn').style.display = 'inline-block';
+            })
+            .catch(err => {
+                alert('Could not access camera/mic: ' + err.message);
+            });
+    });
+
+    document.getElementById('endCallBtn').addEventListener('click', function() {
+        endCall();
+    });
+
+    function endCall() {
+        if (localStream) {
+            localStream.getTracks().forEach(t => t.stop());
+            localStream = null;
+        }
+        for (let uid in peerConnections) {
+            peerConnections[uid].close();
+            delete peerConnections[uid];
+        }
+        remoteStreams = {};
+        document.querySelectorAll('.video-wrapper:not(#localVideoWrapper)').forEach(el => el.remove());
+        document.getElementById('videoGridOverlay').style.display = 'none';
+        document.getElementById('callControls').style.display = 'none';
+        document.getElementById('startCallBtn').style.display = 'block';
+        document.getElementById('endCallBtn').style.display = 'none';
+        isCallActive = false;
+        socket.emit('call_end', { room_id: roomIdStr });
+        document.getElementById('toolStatus').innerHTML = '<i class="bi bi-eye"></i> Viewing';
+    }
+
+    document.getElementById('toggleMicBtn').addEventListener('click', function() {
+        if (!localStream) return;
+        const audioTracks = localStream.getAudioTracks();
+        if (audioTracks.length) {
+            isMicMuted = !isMicMuted;
+            audioTracks[0].enabled = !isMicMuted;
+            this.innerHTML = isMicMuted ? '<i class="bi bi-mic-mute-fill"></i> Unmute' : '<i class="bi bi-mic-fill"></i> Mute';
+            const icon = document.getElementById('micIcon-' + currentUserId);
+            if (icon) icon.className = isMicMuted ? 'bi bi-mic-mute-fill text-danger' : 'bi bi-mic-fill text-success';
+        }
+    });
+
+    document.getElementById('toggleCamBtn').addEventListener('click', function() {
+        if (!localStream) return;
+        const videoTracks = localStream.getVideoTracks();
+        if (videoTracks.length) {
+            isCamOff = !isCamOff;
+            videoTracks[0].enabled = !isCamOff;
+            this.innerHTML = isCamOff ? '<i class="bi bi-camera-video-off-fill"></i> Video On' : '<i class="bi bi-camera-video-fill"></i> Video Off';
+            const icon = document.getElementById('camIcon-' + currentUserId);
+            if (icon) icon.className = isCamOff ? 'bi bi-camera-video-off-fill text-danger' : 'bi bi-camera-video-fill text-success';
+        }
+    });
+
+    socket.on('call_started', function(data) {
+        if (!isCallActive) {
+            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                .then(stream => {
+                    localStream = stream;
+                    isCallActive = true;
+                    document.getElementById('videoGridOverlay').style.display = 'flex';
+                    document.getElementById('callControls').style.display = 'block';
+                    document.getElementById('startCallBtn').style.display = 'none';
+                    document.getElementById('endCallBtn').style.display = 'block';
+                    document.getElementById('localVideo').srcObject = stream;
+                    socket.emit('call_join', { room_id: roomIdStr });
+                    document.getElementById('toggleMicBtn').style.display = 'inline-block';
+                    document.getElementById('toggleCamBtn').style.display = 'inline-block';
+                })
+                .catch(err => {
+                    console.warn('Could not join call:', err);
+                });
+        }
+    });
+
+    socket.on('call_already_active', function(data) {
+        if (!isCallActive) {
+            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                .then(stream => {
+                    localStream = stream;
+                    isCallActive = true;
+                    document.getElementById('videoGridOverlay').style.display = 'flex';
+                    document.getElementById('callControls').style.display = 'block';
+                    document.getElementById('startCallBtn').style.display = 'none';
+                    document.getElementById('endCallBtn').style.display = 'block';
+                    document.getElementById('localVideo').srcObject = stream;
+                    socket.emit('call_join', { room_id: roomIdStr });
+                    document.getElementById('toggleMicBtn').style.display = 'inline-block';
+                    document.getElementById('toggleCamBtn').style.display = 'inline-block';
+                })
+                .catch(err => {
+                    console.warn('Could not auto-join call:', err);
+                });
+        }
+    });
+
+    socket.on('user_joined_call', function(data) {
+        const userId = data.user_id;
+        if (userId == currentUserId) return;
+        if (!peerConnections[userId]) {
+            createPeerConnection(userId);
+            createOffer(userId);
+        }
+    });
+
+    socket.on('user_left_call', function(data) {
+        const userId = data.user_id;
+        if (userId == currentUserId) return;
+        const wrapper = document.getElementById('remoteVideoWrapper-' + userId);
+        if (wrapper) wrapper.remove();
+        if (peerConnections[userId]) {
+            peerConnections[userId].close();
+            delete peerConnections[userId];
+        }
+        delete remoteStreams[userId];
+    });
+
+    socket.on('call_offer', function(data) {
+        const from = data.from;
+        if (from == currentUserId) return;
+        const offer = data.offer;
+        if (!peerConnections[from]) {
+            createPeerConnection(from);
+        }
+        peerConnections[from].setRemoteDescription(new RTCSessionDescription(offer))
+            .then(() => {
+                return peerConnections[from].createAnswer();
+            })
+            .then(answer => {
+                return peerConnections[from].setLocalDescription(answer);
+            })
+            .then(() => {
+                socket.emit('call_answer', {
+                    room_id: roomIdStr,
+                    target_id: from,
+                    answer: peerConnections[from].localDescription
+                });
+            })
+            .catch(err => console.error('Error handling offer:', err));
+    });
+
+    socket.on('call_answer', function(data) {
+        const from = data.from;
+        const answer = data.answer;
+        if (peerConnections[from]) {
+            peerConnections[from].setRemoteDescription(new RTCSessionDescription(answer))
+                .catch(err => console.error('Error setting remote description:', err));
+        }
+    });
+
+    socket.on('ice_candidate', function(data) {
+        const from = data.from;
+        const candidate = data.candidate;
+        if (peerConnections[from]) {
+            peerConnections[from].addIceCandidate(new RTCIceCandidate(candidate))
+                .catch(err => console.error('Error adding ICE candidate:', err));
+        }
+    });
+
+    function createPeerConnection(userId) {
+        const pc = new RTCPeerConnection({
+            iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+        });
+        if (localStream) {
+            localStream.getTracks().forEach(track => {
+                pc.addTrack(track, localStream);
+            });
+        }
+        pc.onicecandidate = function(event) {
+            if (event.candidate) {
+                socket.emit('ice_candidate', {
+                    room_id: roomIdStr,
+                    target_id: userId,
+                    candidate: event.candidate
+                });
+            }
+        };
+        pc.ontrack = function(event) {
+            if (!remoteStreams[userId]) {
+                remoteStreams[userId] = new MediaStream();
+            }
+            remoteStreams[userId].addTrack(event.track);
+            const container = document.getElementById('videoGridContainer');
+            let wrapper = document.getElementById('remoteVideoWrapper-' + userId);
+            if (!wrapper) {
+                wrapper = document.createElement('div');
+                wrapper.className = 'video-wrapper';
+                wrapper.id = 'remoteVideoWrapper-' + userId;
+                const video = document.createElement('video');
+                video.id = 'remoteVideo-' + userId;
+                video.autoplay = true;
+                video.playsInline = true;
+                const label = document.createElement('div');
+                label.className = 'video-label';
+                label.textContent = 'User ' + userId;
+                wrapper.appendChild(video);
+                wrapper.appendChild(label);
+                container.appendChild(wrapper);
+            }
+            const video = wrapper.querySelector('video');
+            video.srcObject = remoteStreams[userId];
+        };
+        peerConnections[userId] = pc;
+        return pc;
+    }
+
+    function createOffer(userId) {
+        const pc = peerConnections[userId];
+        if (!pc) return;
+        pc.createOffer()
+            .then(offer => {
+                return pc.setLocalDescription(offer);
+            })
+            .then(() => {
+                socket.emit('call_offer', {
+                    room_id: roomIdStr,
+                    target_id: userId,
+                    offer: pc.localDescription
+                });
+            })
+            .catch(err => console.error('Error creating offer:', err));
+    }
+
+    document.getElementById('closeVideoGridBtn').addEventListener('click', function() {
+        endCall();
+    });
+
+    // =============== PERMISSION TOGGLE ===============
+    document.querySelectorAll('.permission-toggle').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (!isHost) return;
+            const userId = parseInt(this.dataset.userId);
+            socket.emit('toggle_permission', { room_id: roomIdStr, user_id: userId });
+        });
+    });
+
+    // =============== CONTROLS ===============
+    document.getElementById('startWhiteboardBtn').addEventListener('click', function() {
+        if (canControl) initWhiteboard();
+    });
+    document.getElementById('startScreenShareBtn').addEventListener('click', function() {
+        if (canControl) startScreenShare();
+    });
+    document.getElementById('closeScreenShareBtn').addEventListener('click', function() {
+        if (canControl && isScreenShareActive) closeScreenShare();
+    });
+
+    // =============== CHAT SEND ===============
+    document.getElementById('sendChatBtn').addEventListener('click', function() {
+        const input = document.getElementById('chatInput');
+        const msg = input.value.trim();
+        if (msg) {
+            socket.emit('chat_message', { room_id: roomIdStr, message: msg });
+            input.value = '';
+        }
+    });
+    document.getElementById('chatInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            document.getElementById('sendChatBtn').click();
+        }
+    });
+
+    // =============== STUDY MATERIALS ===============
+    document.querySelector('button[data-bs-target="#materials"]').addEventListener('shown.bs.tab', function() {
+        loadFiles();
+    });
+
+    function loadFiles() {
+        fetch(`/rooms/${roomId}/files`)
+            .then(response => response.json())
+            .then(data => {
+                const fileList = document.getElementById('fileList');
+                const fileCount = document.getElementById('fileCount');
+                const noFilesMsg = document.getElementById('noFilesMsg');
+                if (data.files && data.files.length > 0) {
+                    fileCount.textContent = data.files.length;
+                    fileList.innerHTML = data.files.map(f => `
+                        <div class="file-item" data-file-id="${f.id}">
+                            <i class="${f.file_icon} file-icon"></i>
+                            <div class="file-info">
+                                <span class="file-name" title="${f.original_filename}">${f.original_filename}</span>
+                                <span class="file-meta">${f.uploader} · ${formatFileSize(f.file_size)} · ${f.uploaded_at}</span>
+                            </div>
+                            <div class="file-actions">
+                                <a href="/rooms/${roomId}/download/${f.id}" class="btn btn-download" title="Download"><i class="bi bi-download"></i></a>
+                                ${(f.is_uploader || f.is_host) ? `<button class="btn btn-delete" onclick="deleteFile(${f.id})" title="Delete"><i class="bi bi-trash3"></i></button>` : ''}
+                            </div>
+                        </div>
+                    `).join('');
+                    if (noFilesMsg) noFilesMsg.style.display = 'none';
+                } else {
+                    fileCount.textContent = '0';
+                    fileList.innerHTML = `<div class="text-center text-secondary p-3 small" id="noFilesMsg">No files uploaded yet.</div>`;
+                }
+            })
+            .catch(err => console.error('Error loading files:', err));
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function deleteFile(fileId) {
+        if (!confirm('Are you sure you want to delete this file?')) return;
+        fetch(`/rooms/${roomId}/delete/${fileId}`, { method: 'DELETE' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadFiles();
+                    alert('File deleted.');
+                } else {
+                    alert('Error deleting file.');
+                }
+            })
+            .catch(err => console.error('Error:', err));
+    }
+
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('fileInput');
+    if (uploadZone) {
+        uploadZone.addEventListener('dragover', function(e) { e.preventDefault(); this.classList.add('dragover'); });
+        uploadZone.addEventListener('dragleave', function(e) { e.preventDefault(); this.classList.remove('dragover'); });
+        uploadZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) uploadFiles(files);
+        });
+        uploadZone.addEventListener('click', function(e) {
+            if (e.target.closest('.btn')) return;
+            fileInput.click();
+        });
+    }
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                uploadFiles(this.files);
+                this.value = '';
+            }
+        });
+    }
+
+    function uploadFiles(files) {
+        const progressDiv = document.getElementById('uploadProgress');
+        const progressBar = document.getElementById('progressBar');
+        if (!progressDiv) return;
+        progressDiv.style.display = 'block';
+        progressBar.style.width = '0%';
+        progressBar.textContent = '0%';
+        let completed = 0;
+        const total = files.length;
+        Array.from(files).forEach(file => {
+            const formData = new FormData();
+            formData.append('file', file);
+            fetch(`/rooms/${roomId}/upload`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                completed++;
+                const percent = Math.round((completed / total) * 100);
+                progressBar.style.width = percent + '%';
+                progressBar.textContent = percent + '%';
+                if (completed === total) {
+                    setTimeout(() => {
+                        progressDiv.style.display = 'none';
+                        progressBar.style.width = '0%';
+                        progressBar.textContent = '0%';
+                        loadFiles();
+                        alert('All files uploaded successfully!');
+                    }, 500);
+                }
+            })
+            .catch(err => {
+                console.error('Upload error:', err);
+                completed++;
+                if (completed === total) {
+                    progressDiv.style.display = 'none';
+                    alert('Some files failed to upload.');
+                }
+            });
+        });
+    }
+
+    // =============== AUTO-SAVE ===============
+    setInterval(function() {
+        if (canvas && isWhiteboardActive) {
+            socket.emit('save_whiteboard', { room_id: roomIdStr, canvas_data: JSON.stringify(canvas.toJSON()) });
+            console.log('💾 Auto-saved');
+        }
+    }, 30000);
+
+    // =============== INIT ===============
+    if (isHost) {
+        updateControlUI(true);
+    } else {
+        updateControlUI(false);
+    }
+</script>
+{% endblock %}
