@@ -1,8 +1,8 @@
 /* ============================================
-   CollabStudy - Main Stylesheet (Full)
+   CollabStudy - Main Stylesheet
    ============================================ */
 
-/* ---------- Global / Body ---------- */
+/* ---------- Global ---------- */
 body {
     background-color: #0b0e14;
     color: #d1d5db;
@@ -378,7 +378,7 @@ a:hover {
     color: #764ba2;
 }
 
-/* ---------- Responsive (Mobile First) ---------- */
+/* ---------- Responsive ---------- */
 @media (max-width: 767.98px) {
     .university-header h1 {
         font-size: 1.75rem;
@@ -426,7 +426,7 @@ a:hover {
 }
 
 /* ============================================
-   Room Detail Page - Google Meet Style
+   Room Detail Page Layout
    ============================================ */
 
 .room-fullscreen {
@@ -477,7 +477,7 @@ a:hover {
     min-height: 0;
 }
 
-/* Participants Grid */
+/* Participants grid */
 .participants-grid-full {
     flex: 1;
     display: grid;
@@ -543,7 +543,7 @@ a:hover {
     gap: 10px;
 }
 
-/* Room Sidebar */
+/* Room sidebar */
 .room-sidebar-full {
     width: 280px;
     flex-shrink: 0;
@@ -598,7 +598,7 @@ a:hover {
     font-size: 0.8rem;
 }
 
-/* Permission Toggle */
+/* Permission toggle */
 .permission-toggle {
     padding: 0 4px;
     font-size: 0.8rem;
@@ -653,7 +653,7 @@ a:hover {
 }
 
 /* ============================================
-   Whiteboard Overlay
+   Whiteboard overlay
    ============================================ */
 
 .whiteboard-overlay {
@@ -740,7 +740,7 @@ a:hover {
 }
 
 /* ============================================
-   Screen Share Overlay
+   Screen share overlay
    ============================================ */
 
 .screen-share-overlay {
@@ -785,7 +785,7 @@ a:hover {
 }
 
 /* ============================================
-   Video Grid Overlay (Call)
+   Video grid overlay
    ============================================ */
 
 .video-grid-overlay {
@@ -870,7 +870,7 @@ a:hover {
 }
 
 /* ============================================
-   Study Materials (Module 4)
+   Study materials
    ============================================ */
 
 .materials-container {
@@ -881,7 +881,7 @@ a:hover {
     height: 100%;
 }
 
-/* Upload Zone */
+/* Upload zone */
 .upload-zone {
     border: 2px dashed #30363d;
     border-radius: 12px;
@@ -944,7 +944,7 @@ a:hover {
     transition: width 0.3s;
 }
 
-/* File List */
+/* File list */
 .file-list-container {
     flex: 1;
     overflow-y: auto;
@@ -1066,7 +1066,7 @@ a:hover {
 }
 
 
-/* New Layout – Sidebar Participants + Main Content Full */
+/* Sidebar participants and main content */
 .room-main-full {
     display: flex;
     flex: 1;
@@ -1120,7 +1120,7 @@ a:hover {
     flex-direction: column;
 }
 
-/* Sidebar Participants */
+/* Sidebar participants */
 .room-sidebar-participants {
     width: 220px;
     flex-shrink: 0;

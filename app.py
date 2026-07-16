@@ -1,13 +1,12 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, send_file, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
-from flask_socketio import SocketIO, emit, join_room as socket_join_room, leave_room as socket_leave_room, rooms as socket_rooms
+from flask_socketio import SocketIO, emit, join_room as socket_join_room, leave_room as socket_leave_room
 import bcrypt
 from datetime import datetime
+import os
 import random
 import string
-import os
-import json
 import uuid
 import mimetypes
 
@@ -29,6 +28,11 @@ login_manager.login_message = 'Please log in first.'
 def generate_room_code(length=6):
     chars = string.ascii_uppercase + string.digits
     return ''.join(random.choices(chars, k=length))
+
+
+def can_access_room(user, room):
+    return user == room.creator or user in room.members
+
 
 def get_file_icon(file_type):
     if file_type.startswith('image/'):
@@ -121,9 +125,7 @@ call_sessions = {}
 # ---------- Create Tables ----------
 with app.app_context():
     db.create_all()
-    # Create uploads folder if not exists
     os.makedirs('uploads', exist_ok=True)
-    print("✅ Database tables ready.")
 
 # ---------- Authentication Routes ----------
 @app.route('/')
@@ -212,7 +214,8 @@ def forgotPassword():
 def rooms():
     created = Room.query.filter_by(created_by=current_user.id).all()
     joined = current_user.joined_rooms
-    all_rooms = list(set(created + joined))
+    room_ids = {room.id for room in created}
+    all_rooms = created + [room for room in joined if room.id not in room_ids]
     return render_template('rooms.html', rooms=all_rooms)
 
 @app.route('/rooms/create', methods=['GET', 'POST'])
@@ -292,7 +295,7 @@ def join_room():
 @login_required
 def room_detail(room_id):
     room = Room.query.get_or_404(room_id)
-    if current_user != room.creator and current_user not in room.members:
+    if not can_access_room(current_user, room):
         flash('You do not have access to this room.', 'danger')
         return redirect(url_for('rooms'))
     return render_template('room_detail.html', room=room)
@@ -315,7 +318,7 @@ def delete_room(room_id):
 @login_required
 def room_files(room_id):
     room = Room.query.get_or_404(room_id)
-    if current_user != room.creator and current_user not in room.members:
+    if not can_access_room(current_user, room):
         return jsonify({'error': 'Access denied'}), 403
     
     files = StudyMaterial.query.filter_by(room_id=room_id).order_by(StudyMaterial.uploaded_at.desc()).all()
@@ -336,7 +339,7 @@ def room_files(room_id):
 @login_required
 def upload_file(room_id):
     room = Room.query.get_or_404(room_id)
-    if current_user != room.creator and current_user not in room.members:
+    if not can_access_room(current_user, room):
         return jsonify({'error': 'Access denied'}), 403
     
     if 'file' not in request.files:
@@ -390,7 +393,7 @@ def upload_file(room_id):
 @login_required
 def download_file(room_id, file_id):
     room = Room.query.get_or_404(room_id)
-    if current_user != room.creator and current_user not in room.members:
+    if not can_access_room(current_user, room):
         flash('Access denied.', 'danger')
         return redirect(url_for('room_detail', room_id=room_id))
     
@@ -410,7 +413,7 @@ def download_file(room_id, file_id):
 @login_required
 def delete_file(room_id, file_id):
     room = Room.query.get_or_404(room_id)
-    if current_user != room.creator and current_user not in room.members:
+    if not can_access_room(current_user, room):
         return jsonify({'error': 'Access denied'}), 403
     
     file = StudyMaterial.query.get_or_404(file_id)
@@ -553,7 +556,6 @@ def handle_save_whiteboard(data):
     os.makedirs('whiteboard_data', exist_ok=True)
     with open(f'whiteboard_data/room_{room_id}.json', 'w') as f:
         f.write(canvas_json)
-    print(f"💾 Whiteboard saved for room {room_id}")
 
 @socketio.on('load_whiteboard')
 def handle_load_whiteboard(data):
@@ -571,7 +573,6 @@ def handle_load_whiteboard(data):
 def handle_join_room(data):
     room_id = str(data['room_id'])
     socket_join_room(room_id)
-    print(f"✅ User joined room {room_id}")
     emit('joined_room', {'room_id': room_id}, to=request.sid)
     room = Room.query.get(int(room_id))
     user_id = current_user.id
@@ -591,8 +592,6 @@ def handle_draw(data):
     room = Room.query.get(int(room_id))
     if room.created_by == user_id or user_id in whiteboard_permissions.get(room_id, []):
         emit('draw', data, to=room_id, skip_sid=request.sid)
-    else:
-        print(f"⚠️ User {user_id} tried to draw without permission")
 
 @socketio.on('clear_canvas')
 def handle_clear(data):
@@ -630,8 +629,6 @@ def handle_screen_share_started(data):
     if room.created_by == user_id or user_id in whiteboard_permissions.get(room_id, []):
         screen_share_active[room_id] = True
         emit('tool_started', {'tool': 'screen_share'}, to=room_id, skip_sid=request.sid)
-    else:
-        print(f"⚠️ User {user_id} tried to start screen share without permission")
 
 @socketio.on('screen_share_stopped')
 def handle_screen_share_stopped(data):
@@ -656,7 +653,6 @@ def handle_toggle_permission(data):
         whiteboard_permissions[room_id].append(user_id)
         can_control = True
     emit('permission_update', {'user_id': user_id, 'can_control': can_control}, to=room_id)
-    print(f"🔄 Permission for user {user_id} in room {room_id} set to {can_control}")
 
 # --- Audio/Video Call Signaling ---
 @socketio.on('call_start')
@@ -668,7 +664,6 @@ def handle_call_start(data):
     if caller_id not in call_sessions[room_id]:
         call_sessions[room_id].append(caller_id)
     emit('call_started', {'caller_id': caller_id}, to=room_id, skip_sid=request.sid)
-    print(f"📞 Call started in room {room_id} by user {caller_id}")
 
 @socketio.on('call_join')
 def handle_call_join(data):
@@ -679,7 +674,6 @@ def handle_call_join(data):
     if user_id not in call_sessions[room_id]:
         call_sessions[room_id].append(user_id)
     emit('user_joined_call', {'user_id': user_id}, to=room_id, skip_sid=request.sid)
-    print(f"📞 User {user_id} joined call in room {room_id}")
 
 @socketio.on('call_offer')
 def handle_call_offer(data):
@@ -709,7 +703,6 @@ def handle_call_end(data):
     if room_id in call_sessions and user_id in call_sessions[room_id]:
         call_sessions[room_id].remove(user_id)
     emit('user_left_call', {'user_id': user_id}, to=room_id, skip_sid=request.sid)
-    print(f"📞 User {user_id} ended call in room {room_id}")
 
 # --- Ping ---
 @socketio.on('ping')

@@ -1,69 +1,65 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container py-4">
+  <div class="container py-4">
     <div class="row">
-        <!-- Left Column: User Info -->
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body text-center">
-                    <div class="avatar-circle mx-auto mb-3">
-                        <i class="bi bi-person-fill"></i>
-                    </div>
-                    <h3>{{ user.username }}</h3>
-                    <p class="text-secondary">{{ user.email }}</p>
-                    <hr>
-                    <p><strong>Member since:</strong> {{ user.id|default('Recently') }}</p>
-                    <a href="/dashboard" class="btn btn-outline-primary-custom w-100">Back to Dashboard</a>
-                </div>
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-body text-center">
+            <div class="avatar-circle mx-auto mb-3">
+              <i class="bi bi-person-fill"></i>
             </div>
+            <h3>{{ user.username }}</h3>
+            <p class="text-secondary">{{ user.email }}</p>
+            <hr>
+            <p><strong>Account ID:</strong> {{ user.id }}</p>
+            <a href="/dashboard" class="btn btn-outline-primary-custom w-100">Back to Dashboard</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-8">
+        <div class="card mb-4">
+          <div class="card-header">
+            <h4>Study Statistics</h4>
+          </div>
+          <div class="card-body">
+            <div class="row text-center">
+              <div class="col-6">
+                <h2 class="text-gradient">{{ created_rooms|length }}</h2>
+                <p>Rooms Created</p>
+              </div>
+              <div class="col-6">
+                <h2 class="text-gradient">{{ joined_rooms|length }}</h2>
+                <p>Rooms Joined</p>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <!-- Right Column: Stats and History -->
-        <div class="col-md-8">
-            <!-- Statistics Cards -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h4>Study Statistics</h4>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-6">
-                            <h2 class="text-gradient">{{ created_rooms|length }}</h2>
-                            <p>Rooms Created</p>
-                        </div>
-                        <div class="col-6">
-                            <h2 class="text-gradient">{{ joined_rooms|length }}</h2>
-                            <p>Rooms Joined</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Recent Activity History -->
-            <div class="card">
-                <div class="card-header">
-                    <h4>Recent Activity</h4>
-                </div>
-                <div class="card-body p-0">
-                    <ul class="list-group list-group-flush bg-transparent">
-                        {% for entry in history %}
-                        <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center">
-                            <div>
-                                <i class="bi bi-{{ 'plus-circle' if entry.action == 'created' else 'door-open' if entry.action == 'joined' else 'arrow-right' }} me-2"></i>
-                                <strong>{{ entry.action | capitalize }}</strong> room
-                                <strong>{{ entry.room.name }}</strong>
-                                ({{ entry.room.course_code }})
-                            </div>
-                            <small class="text-secondary">{{ entry.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
-                        </li>
-                        {% else %}
-                        <li class="list-group-item bg-transparent text-center">No activity yet. Join or create a room!</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
+        <div class="card">
+          <div class="card-header">
+            <h4>Recent Activity</h4>
+          </div>
+          <div class="card-body p-0">
+            <ul class="list-group list-group-flush bg-transparent">
+              {% for entry in history %}
+                <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center">
+                  <div>
+                    <i class="bi bi-{{ 'plus-circle' if entry.action == 'created' else 'door-open' if entry.action == 'joined' else 'arrow-right' }} me-2"></i>
+                    <strong>{{ entry.action | capitalize }}</strong> room
+                    <strong>{{ entry.room.name }}</strong>
+                    ({{ entry.room.course_code }})
+                  </div>
+                  <small class="text-secondary">{{ entry.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
+                </li>
+              {% else %}
+                <li class="list-group-item bg-transparent text-center">No activity yet. Join or create a room!</li>
+              {% endfor %}
+            </ul>
+          </div>
         </div>
+      </div>
     </div>
-</div>
+  </div>
 {% endblock %}
