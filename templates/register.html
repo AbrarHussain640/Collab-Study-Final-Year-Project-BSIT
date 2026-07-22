@@ -1,88 +1,169 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <div class="container py-5">
-    <div class="row justify-content-center">
-      <div class="col-md-6 col-lg-5">
-        <div class="card shadow-lg border-0 rounded-4">
-          <div class="card-body p-5">
-            <h1 class="text-center mb-4">Register to <span class="text-gradient">CollabStudy</span></h1>
+<div class="auth-page">
+    <div class="container">
+        <div class="row justify-content-center align-items-center min-vh-100">
+            <div class="col-md-5 col-lg-4">
+                
+                <!-- Back Link -->
+                <a href="/" class="back-link mb-4">
+                    <i class="bi bi-arrow-left"></i> Back to Home
+                </a>
 
-            <form action="/register" method="POST" id="registerForm">
-              <div class="mb-3">
-                <label for="username" class="form-label fw-semibold">Username</label>
-                <input type="text" class="form-control form-control-lg rounded-3" id="username" name="username" placeholder="Choose a username" required>
-              </div>
+                <!-- Register Card -->
+                <div class="auth-card animate-fade-in-scale">
+                    <div class="auth-card-body">
+                        
+                        <!-- Header -->
+                        <div class="auth-header text-center mb-4">
+                            <div class="auth-icon mb-3">
+                                <i class="bi bi-person-plus"></i>
+                            </div>
+                            <h2>Create Account</h2>
+                            <p>Join <span class="text-primary-custom">CollabStudy</span> today</p>
+                        </div>
 
-              <div class="mb-3">
-                <label for="email" class="form-label fw-semibold">Email Address</label>
-                <input type="email" class="form-control form-control-lg rounded-3" id="email" name="email" placeholder="Enter your email" required>
-              </div>
+                        <!-- Register Form -->
+                        <form action="/register" method="POST" id="registerForm">
+                            
+                            <!-- Username -->
+                            <div class="mb-3">
+                                <label for="username" class="form-label">
+                                    <i class="bi bi-person"></i> Username
+                                </label>
+                                <input 
+                                    type="text" 
+                                    class="form-control form-control-lg" 
+                                    id="username" 
+                                    name="username" 
+                                    placeholder="Choose a username" 
+                                    required
+                                >
+                            </div>
 
-              <div class="mb-3">
-                <label for="password" class="form-label fw-semibold">Password</label>
-                <input type="password" class="form-control form-control-lg rounded-3" id="password" name="password" placeholder="Create a password" required minlength="8">
-                <div class="form-text">At least 8 characters</div>
-              </div>
+                            <!-- Email -->
+                            <div class="mb-3">
+                                <label for="email" class="form-label">
+                                    <i class="bi bi-envelope"></i> Email Address
+                                </label>
+                                <input 
+                                    type="email" 
+                                    class="form-control form-control-lg" 
+                                    id="email" 
+                                    name="email" 
+                                    placeholder="Enter your email" 
+                                    required
+                                >
+                            </div>
 
-              <div class="mb-4">
-                <label for="confirmPassword" class="form-label fw-semibold">Confirm Password</label>
-                <input type="password" class="form-control form-control-lg rounded-3" id="confirmPassword" name="confirmPassword" placeholder="Re-enter your password" required>
-                <div class="form-text" id="passwordMatchMsg">Passwords must match</div>
-              </div>
+                            <!-- Password -->
+                            <div class="mb-3">
+                                <label for="password" class="form-label">
+                                    <i class="bi bi-lock"></i> Password
+                                </label>
+                                <input 
+                                    type="password" 
+                                    class="form-control form-control-lg" 
+                                    id="password" 
+                                    name="password" 
+                                    placeholder="Create a password" 
+                                    required 
+                                    minlength="8"
+                                >
+                                <div class="form-text">At least 8 characters</div>
+                            </div>
 
-              <div class="mb-4">
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="terms" required>
-                  <label class="form-check-label" for="terms">
-                    I agree to the <a href="/terms">Terms</a> and <a href="/privacy">Privacy Policy</a>
-                  </label>
+                            <!-- Confirm Password -->
+                            <div class="mb-3">
+                                <label for="confirmPassword" class="form-label">
+                                    <i class="bi bi-lock-fill"></i> Confirm Password
+                                </label>
+                                <input 
+                                    type="password" 
+                                    class="form-control form-control-lg" 
+                                    id="confirmPassword" 
+                                    name="confirmPassword" 
+                                    placeholder="Re-enter your password" 
+                                    required
+                                >
+                                <div class="form-text" id="passwordMatchMsg">Passwords must match</div>
+                            </div>
+
+                            <!-- Terms -->
+                            <div class="mb-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="terms" required>
+                                    <label class="form-check-label" for="terms">
+                                        I agree to the <a href="/terms">Terms</a> and <a href="/privacy">Privacy Policy</a>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <button type="submit" class="btn btn-primary-custom w-100 btn-lg mb-3">
+                                <i class="bi bi-person-check"></i> Create Account
+                            </button>
+
+                            <!-- Login Link -->
+                            <p class="text-center auth-footer-text">
+                                Already have an account? 
+                                <a href="/login" class="fw-semibold">Sign In</a>
+                            </p>
+
+                        </form>
+                    </div>
                 </div>
-              </div>
 
-              <button type="submit" class="btn btn-primary-custom text-white w-100 py-3 fw-bold rounded-3 mb-3">
-                Register Now
-              </button>
+                <!-- Footer -->
+                <div class="text-center mt-3">
+                    <p class="auth-footer-note">
+                        <i class="bi bi-shield-lock"></i> Your data is secure
+                    </p>
+                </div>
 
-              <p class="text-center mb-0">
-                Already have an account?
-                <a href="/login" class="text-decoration-none fw-semibold">Log in</a>
-              </p>
-            </form>
-          </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
 
-  <script>
+    <!-- Background Decoration -->
+    <div class="bg-decoration">
+        <div class="deco-circle deco-1"></div>
+        <div class="deco-circle deco-2"></div>
+    </div>
+</div>
+
+<!-- Password Validation Script -->
+<script>
     const form = document.getElementById('registerForm');
     const pwd = document.getElementById('password');
     const cpwd = document.getElementById('confirmPassword');
     const msg = document.getElementById('passwordMatchMsg');
 
     function validate() {
-      if (pwd.value !== cpwd.value) {
-        msg.innerHTML = '❌ Passwords do not match';
-        msg.style.color = '#ef4444';
-        return false;
-      }
-      msg.innerHTML = '✅ Passwords match';
-      msg.style.color = '#10b981';
-      return true;
+        if (pwd.value !== cpwd.value) {
+            msg.innerHTML = '<i class="bi bi-x-circle"></i> Passwords do not match';
+            msg.style.color = '#EF4444';
+            return false;
+        } else if (pwd.value && cpwd.value) {
+            msg.innerHTML = '<i class="bi bi-check-circle"></i> Passwords match';
+            msg.style.color = '#1CE6BA';
+            return true;
+        }
+        return true;
     }
 
     pwd.addEventListener('input', validate);
     cpwd.addEventListener('input', validate);
 
     form.addEventListener('submit', function (event) {
-      if (!validate()) {
-        event.preventDefault();
-        alert('Passwords do not match.');
-      } else if (pwd.value.length < 8) {
-        event.preventDefault();
-        alert('Password must be at least 8 characters.');
-      }
+        if (!validate()) {
+            event.preventDefault();
+            alert('Passwords do not match.');
+        } else if (pwd.value.length < 8) {
+            event.preventDefault();
+            alert('Password must be at least 8 characters.');
+        }
     });
-  </script>
+</script>
 {% endblock %}

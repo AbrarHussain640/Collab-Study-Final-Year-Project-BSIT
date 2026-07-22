@@ -1,23 +1,28 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <section class="hero-section d-flex align-items-center">
+<section class="hero-section d-flex align-items-center" style="min-height: 100vh;">
     <div class="container">
-      <div class="row justify-content-center">
-        <div class="col-lg-8 text-center">
-          <h1 class="display-3 main-heading mb-4">
-            Welcome to <br><span class="text-gradient">CollabStudy</span>
-          </h1>
-          <p class="lead mb-5 text-secondary">
-            In the era of remote learning, students face significant challenges in collaborating effectively. While
-            tools like Zoom exist, they lack the immersive features necessary for productive study.
-            <strong>CollabStudy</strong> replicates the experience of studying together in a physical library.
-          </p>
-          <div class="d-flex gap-3 justify-content-center">
-            <a class="btn btn-primary-custom text-white btn-lg" href="/login">Get Started Now</a>
-          </div>
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-xl-7 text-center">
+                <h1 class="display-3 main-heading mb-4">
+                    Welcome to <br><span class="text-gradient">CollabStudy</span>
+                </h1>
+                <p class="lead mb-5 text-secondary mx-auto" style="max-width: 700px;">
+                    In the era of remote learning, students face significant challenges in collaborating effectively. While
+                    tools like Zoom exist, they lack the immersive features necessary for productive study.
+                    <strong>CollabStudy</strong> replicates the experience of studying together in a physical library.
+                </p>
+                <div class="d-flex flex-wrap gap-3 justify-content-center">
+                    <a href="/login" class="btn btn-primary-custom text-white btn-lg px-5 py-3">
+                        Get Started Now
+                    </a>
+                    <a href="#features" class="btn btn-outline-light btn-lg px-5 py-3">
+                        Learn More
+                    </a>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </section>
+</section>
 {% endblock %}

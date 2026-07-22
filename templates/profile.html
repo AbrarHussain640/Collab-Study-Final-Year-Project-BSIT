@@ -1,65 +1,100 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <div class="container py-4">
-    <div class="row">
-      <div class="col-md-4">
-        <div class="card">
-          <div class="card-body text-center">
-            <div class="avatar-circle mx-auto mb-3">
-              <i class="bi bi-person-fill"></i>
-            </div>
-            <h3>{{ user.username }}</h3>
-            <p class="text-secondary">{{ user.email }}</p>
-            <hr>
-            <p><strong>Account ID:</strong> {{ user.id }}</p>
-            <a href="/dashboard" class="btn btn-outline-primary-custom w-100">Back to Dashboard</a>
-          </div>
-        </div>
-      </div>
+<div class="profile-page">
+    <div class="container py-4">
+        
+        <!-- Back Button -->
+        <a href="/dashboard" class="back-link mb-4">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
 
-      <div class="col-md-8">
-        <div class="card mb-4">
-          <div class="card-header">
-            <h4>Study Statistics</h4>
-          </div>
-          <div class="card-body">
-            <div class="row text-center">
-              <div class="col-6">
-                <h2 class="text-gradient">{{ created_rooms|length }}</h2>
-                <p>Rooms Created</p>
-              </div>
-              <div class="col-6">
-                <h2 class="text-gradient">{{ joined_rooms|length }}</h2>
-                <p>Rooms Joined</p>
-              </div>
+        <div class="row g-4">
+            
+            <!-- Profile Card -->
+            <div class="col-lg-4">
+                <div class="profile-card">
+                    <div class="profile-card-body text-center">
+                        
+                        <!-- Avatar -->
+                        <div class="profile-avatar-large mx-auto mb-3">
+                            <span>{{ user.username[0] | upper }}</span>
+                        </div>
+                        
+                        <h3>{{ user.username }}</h3>
+                        <p class="text-muted-custom">{{ user.email }}</p>
+                        
+                        <hr>
+                        
+                        <div class="profile-info">
+                            <p><strong>Account ID:</strong> {{ user.id }}</p>
+                            <p><strong>Member Since:</strong> Active</p>
+                        </div>
+                        
+                        <a href="/dashboard" class="btn btn-outline-primary-custom w-100 mt-3">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </div>
+                </div>
             </div>
-          </div>
-        </div>
 
-        <div class="card">
-          <div class="card-header">
-            <h4>Recent Activity</h4>
-          </div>
-          <div class="card-body p-0">
-            <ul class="list-group list-group-flush bg-transparent">
-              {% for entry in history %}
-                <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center">
-                  <div>
-                    <i class="bi bi-{{ 'plus-circle' if entry.action == 'created' else 'door-open' if entry.action == 'joined' else 'arrow-right' }} me-2"></i>
-                    <strong>{{ entry.action | capitalize }}</strong> room
-                    <strong>{{ entry.room.name }}</strong>
-                    ({{ entry.room.course_code }})
-                  </div>
-                  <small class="text-secondary">{{ entry.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
-                </li>
-              {% else %}
-                <li class="list-group-item bg-transparent text-center">No activity yet. Join or create a room!</li>
-              {% endfor %}
-            </ul>
-          </div>
+            <!-- Stats & History -->
+            <div class="col-lg-8">
+                
+                <!-- Stats -->
+                <div class="stats-row row g-3 mb-4">
+                    <div class="col-6">
+                        <div class="stat-box">
+                            <h2 class="text-gradient">{{ created_rooms|length }}</h2>
+                            <p>Rooms Created</p>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-box">
+                            <h2 class="text-gradient">{{ joined_rooms|length }}</h2>
+                            <p>Rooms Joined</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="activity-card">
+                    <div class="activity-header">
+                        <h4><i class="bi bi-clock-history"></i> Recent Activity</h4>
+                    </div>
+                    <div class="activity-body">
+                        {% if history %}
+                            {% for entry in history %}
+                            <div class="activity-item">
+                                <div class="activity-icon">
+                                    {% if entry.action == 'created' %}
+                                        <i class="bi bi-plus-circle-fill text-primary-custom"></i>
+                                    {% elif entry.action == 'joined' %}
+                                        <i class="bi bi-door-open-fill" style="color:#10B981;"></i>
+                                    {% else %}
+                                        <i class="bi bi-arrow-right-circle-fill" style="color:#3B82F6;"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="activity-content">
+                                    <span><strong>{{ entry.action | capitalize }}</strong> room <strong>{{ entry.room.name }}</strong></span>
+                                    <small class="text-muted-custom">({{ entry.room.course_code }})</small>
+                                </div>
+                                <div class="activity-time">
+                                    <small>{{ entry.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="activity-empty">
+                                <i class="bi bi-inbox"></i>
+                                <p>No activity yet. Join or create a room!</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
         </div>
-      </div>
     </div>
-  </div>
+</div>
 {% endblock %}

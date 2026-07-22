@@ -1,59 +1,101 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>My Study Rooms</h2>
-        <div>
-            <a href="/dashboard" class="btn btn-outline-secondary me-2">
-                <i class="bi bi-speedometer2"></i> Back to Dashboard
-            </a>
-            <a href="/rooms/create" class="btn btn-primary-custom">
-                <i class="bi bi-plus-lg"></i> Create Room
-            </a>
-        </div>
-    </div>
-
-    <!-- Join Room Card -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5>Join a Room with Code</h5>
-            <form action="/rooms/join" method="POST" class="row g-2">
-                <div class="col-auto">
-                    <input type="text" name="room_code" class="form-control" placeholder="Enter 6-digit code" maxlength="6" required>
+<div class="rooms-page">
+    <div class="container py-4">
+        
+        <!-- Header -->
+        <div class="rooms-header mb-4">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <a href="/dashboard" class="back-link mb-2">
+                        <i class="bi bi-arrow-left"></i> Back to Dashboard
+                    </a>
+                    <h2><i class="bi bi-door-open-fill"></i> My Study Rooms</h2>
                 </div>
-                <div class="col-auto">
-                    <button type="submit" class="btn btn-primary">Join Room</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Rooms List -->
-    {% if rooms %}
-        <div class="row g-4">
-            {% for room in rooms %}
-            <div class="col-md-6">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ room.name }}</h5>
-                        <p class="card-text text-secondary">{{ room.description or "No description" }}</p>
-                        <p class="small">
-                            <strong>Course Code:</strong> {{ room.course_code }}<br>
-                            <strong>Join Code:</strong> <code>{{ room.room_code }}</code><br>
-                            <strong>Members:</strong> {{ room.members|length }}
-                        </p>
-                        <a href="/rooms/{{ room.id }}" class="btn btn-outline-primary-custom">Enter Room →</a>
-                        {% if room.created_by == current_user.id %}
-                            <a href="/rooms/delete/{{ room.id }}" class="btn btn-sm btn-outline-danger mt-2 d-block" onclick="return confirm('Delete this room permanently?')">Delete Room</a>
-                        {% endif %}
-                    </div>
+                <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                    <a href="/rooms/create" class="btn btn-primary-custom">
+                        <i class="bi bi-plus-lg"></i> Create Room
+                    </a>
                 </div>
             </div>
-            {% endfor %}
         </div>
-    {% else %}
-        <div class="alert alert-info">You haven't created or joined any rooms yet. Create one or join with a code!</div>
-    {% endif %}
+
+        <!-- Join Room Card -->
+        <div class="join-room-card mb-4">
+            <div class="card-body">
+                <h5><i class="bi bi-box-arrow-in-right"></i> Join a Room with Code</h5>
+                <form action="/rooms/join" method="POST" class="row g-2 mt-2">
+                    <div class="col-sm-8">
+                        <input type="text" name="room_code" class="form-control" placeholder="Enter 6-digit room code" maxlength="6" required>
+                    </div>
+                    <div class="col-sm-4">
+                        <button type="submit" class="btn btn-primary-custom w-100">
+                            <i class="bi bi-door-open"></i> Join Room
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Rooms Grid -->
+        {% if rooms %}
+            <div class="row g-4">
+                {% for room in rooms %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="room-card">
+                        <div class="room-card-body">
+                            
+                            <!-- Room Header -->
+                            <div class="room-card-header">
+                                <div class="room-icon-small">
+                                    <i class="bi bi-bookmark-star-fill"></i>
+                                </div>
+                                <div>
+                                    <h5>{{ room.name }}</h5>
+                                    <span class="room-course">{{ room.course_code }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Room Description -->
+                            <p class="room-desc">{{ room.description or "No description provided" }}</p>
+
+                            <!-- Room Info -->
+                            <div class="room-meta">
+                                <span><i class="bi bi-key"></i> <code>{{ room.room_code }}</code></span>
+                                <span><i class="bi bi-people"></i> {{ room.members|length }} members</span>
+                                {% if room.is_private %}
+                                <span><i class="bi bi-lock-fill"></i> Private</span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="room-card-actions">
+                                <a href="/rooms/{{ room.id }}" class="btn btn-primary-custom w-100">
+                                    <i class="bi bi-box-arrow-in-right"></i> Enter Room
+                                </a>
+                                {% if room.created_by == current_user.id %}
+                                <a href="/rooms/delete/{{ room.id }}" class="btn btn-outline-danger w-100 mt-2" 
+                                   onclick="return confirm('Delete this room permanently?')">
+                                    <i class="bi bi-trash3"></i> Delete Room
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <i class="bi bi-door-open"></i>
+                <h4>No Rooms Yet</h4>
+                <p>Create a new room or join one with a code!</p>
+                <a href="/rooms/create" class="btn btn-primary-custom">
+                    <i class="bi bi-plus-lg"></i> Create Your First Room
+                </a>
+            </div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

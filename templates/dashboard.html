@@ -1,272 +1,275 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container-fluid px-0">
-    <!-- Mobile menu toggle button -->
-    <div class="d-md-none p-3">
-        <button class="btn btn-primary w-100" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarCollapse" aria-expanded="false" aria-controls="sidebarCollapse">
-            <i class="bi bi-list"></i> Menu
-        </button>
-    </div>
+<div class="dashboard-page">
+    <div class="container-fluid px-0">
+        
+        <!-- Mobile Menu Toggle -->
+        <div class="d-lg-none p-3">
+            <button class="btn btn-primary-custom w-100" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarCollapse">
+                <i class="bi bi-list"></i> Menu
+            </button>
+        </div>
 
-    <div class="collapse d-md-block" id="sidebarCollapse">
-        <div class="row g-0">
-            <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 sidebar p-3">
-                <div class="sidebar-header text-center mb-4">
-                    <div class="avatar-wrapper mx-auto">
-                        <div class="avatar-circle">
-                            <i class="bi bi-person-fill"></i>
-                        </div>
-                    </div>
-                    <h5 class="mt-3 mb-0">{{ current_user.username }}</h5>
-                    <small class="text-secondary-soft">{{ current_user.email }}</small>
-                </div>
+        <div class="collapse d-lg-block" id="sidebarCollapse">
+            <div class="row g-0">
                 
-                <hr class="sidebar-divider">
-                
-                <div class="sidebar-nav">
-                    <a href="/dashboard" class="sidebar-link active">
-                        <i class="bi bi-speedometer2"></i>
-                        <span>Dashboard</span>
-                    </a>
-                    <a href="/rooms" class="sidebar-link">
-                        <i class="bi bi-door-open-fill"></i>
-                        <span>My Rooms</span>
-                    </a>
-                    <a href="/profile" class="sidebar-link">
-                        <i class="bi bi-person-circle"></i>
-                        <span>My Profile</span>
-                    </a>
-                    <a href="#" class="sidebar-link">
-                        <i class="bi bi-easel-fill"></i>
-                        <span>Whiteboard</span>
-                    </a>
-                    <a href="#" class="sidebar-link">
-                        <i class="bi bi-chat-dots-fill"></i>
-                        <span>Communication</span>
-                    </a>
-                    <a href="#" class="sidebar-link">
-                        <i class="bi bi-folder2-open-fill"></i>
-                        <span>Study Materials</span>
-                    </a>
-                    <a href="#" class="sidebar-link">
-                        <i class="bi bi-graph-up"></i>
-                        <span>Analytics</span>
-                    </a>
-                </div>
-                
-                <hr class="sidebar-divider">
-                
-                <div class="sidebar-footer">
-                    <a href="/logout" class="btn btn-outline-danger w-100">
-                        <i class="bi bi-box-arrow-right me-2"></i> Logout
-                    </a>
-                </div>
-            </div>
+                <!-- ========== SIDEBAR ========== -->
+                <div class="col-lg-2 col-md-3">
+                    <aside class="dashboard-sidebar">
+                        
+                        <!-- User Profile Section -->
+                        <div class="sidebar-profile text-center">
+                            <div class="profile-avatar mx-auto">
+                                <span>{{ current_user.username[0] | upper }}</span>
+                            </div>
+                            <h5 class="mt-2 mb-0">{{ current_user.username }}</h5>
+                            <small>{{ current_user.email }}</small>
+                        </div>
 
-            <!-- Main Content -->
-            <div class="col-md-9 col-lg-10 p-3 p-md-4">
-                <!-- University Header -->
-                <div class="university-header text-center text-md-start mb-4">
-                    <h6 class="text-secondary">INTERNATIONAL ISLAMIC UNIVERSITY ISLAMABAD</h6>
-                    <p class="small text-secondary">FACULTY OF COMPUTING & IT | DEPARTMENT OF COMPUTER SCIENCE</p>
-                    <h1 class="display-5 fw-bold">
-                        <span class="text-gradient">CollabStudy</span>
-                    </h1>
-                    <p class="lead">Real-Time Virtual Study Room Platform</p>
+                        <hr class="sidebar-divider">
+
+                        <!-- Navigation Links -->
+                        <nav class="sidebar-nav">
+                            <a href="/dashboard" class="sidebar-link active">
+                                <i class="bi bi-speedometer2"></i>
+                                <span>Dashboard</span>
+                            </a>
+                            <a href="/rooms" class="sidebar-link">
+                                <i class="bi bi-door-open-fill"></i>
+                                <span>My Rooms</span>
+                            </a>
+                            <a href="/profile" class="sidebar-link">
+                                <i class="bi bi-person-circle"></i>
+                                <span>My Profile</span>
+                            </a>
+                        </nav>
+
+                        <hr class="sidebar-divider">
+
+                        <!-- Logout -->
+                        <div class="sidebar-footer">
+                            <a href="/logout" class="btn btn-outline-danger w-100">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </a>
+                        </div>
+
+                    </aside>
                 </div>
 
-                <!-- Welcome Card -->
-                <div class="welcome-card mb-4 p-3 rounded-3">
-                    <h3>Welcome back, <span class="text-gradient">{{ current_user.username }}</span>!</h3>
-                    <p class="text-secondary mb-0">Ready to collaborate? Here's your study overview.</p>
+                <!-- ========== MAIN CONTENT ========== -->
+                <div class="col-lg-10 col-md-9">
+                    <div class="dashboard-main">
+                        
+                        <!-- University Header -->
+                        <div class="dashboard-header text-center text-md-start mb-4">
+                            <h6>INTERNATIONAL ISLAMIC UNIVERSITY ISLAMABAD</h6>
+                            <p>FACULTY OF COMPUTING & IT | DEPARTMENT OF COMPUTER SCIENCE</p>
+                            <h1><span class="text-gradient">CollabStudy</span></h1>
+                            <p class="header-subtitle">Real-Time Virtual Study Room Platform</p>
+                        </div>
+
+                        <!-- Welcome Card -->
+                        <div class="welcome-banner mb-4">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <h3>Welcome back, <span class="text-gradient">{{ current_user.username }}</span>! 👋</h3>
+                                    <p>Ready to collaborate? Here's your study overview for today.</p>
+                                </div>
+                                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                                    <a href="/rooms" class="btn btn-primary-custom">
+                                        <i class="bi bi-door-open"></i> Enter Study Room
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stats Row -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-6 col-lg-3">
+                                <div class="stat-card">
+                                    <div class="stat-icon-wrapper bg-primary-custom">
+                                        <i class="bi bi-clock-fill"></i>
+                                    </div>
+                                    <div class="stat-info">
+                                        <h3>127</h3>
+                                        <p>Study Hours</p>
+                                        <small class="text-primary-custom"><i class="bi bi-arrow-up"></i> 12%</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-lg-3">
+                                <div class="stat-card">
+                                    <div class="stat-icon-wrapper" style="background: linear-gradient(135deg, #F59E0B, #D97706);">
+                                        <i class="bi bi-fire"></i>
+                                    </div>
+                                    <div class="stat-info">
+                                        <h3>15</h3>
+                                        <p>Day Streak</p>
+                                        <small style="color:#F59E0B;">Keep it up!</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-lg-3">
+                                <div class="stat-card">
+                                    <div class="stat-icon-wrapper" style="background: linear-gradient(135deg, #3B82F6, #2563EB);">
+                                        <i class="bi bi-people-fill"></i>
+                                    </div>
+                                    <div class="stat-info">
+                                        <h3>3</h3>
+                                        <p>Active Rooms</p>
+                                        <small>12 partners</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-lg-3">
+                                <div class="stat-card">
+                                    <div class="stat-icon-wrapper" style="background: linear-gradient(135deg, #10B981, #059669);">
+                                        <i class="bi bi-trophy-fill"></i>
+                                    </div>
+                                    <div class="stat-info">
+                                        <h3>8</h3>
+                                        <p>Badges Earned</p>
+                                        <small style="color:#10B981;">+2 new</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Key Modules -->
+                        <h3 class="section-title">📚 Key Modules</h3>
+                        <div class="row g-3">
+                            
+                            <!-- Module 1: Room Management -->
+                            <div class="col-sm-6 col-lg-4">
+                                <div class="module-card">
+                                    <div class="module-header">
+                                        <i class="bi bi-people-fill"></i>
+                                        <h4>User & Room Mgmt</h4>
+                                    </div>
+                                    <div class="module-body">
+                                        <ul class="module-features">
+                                            <li><i class="bi bi-check-circle"></i> Secure Authentication</li>
+                                            <li><i class="bi bi-check-circle"></i> Create & Join Rooms</li>
+                                            <li><i class="bi bi-check-circle"></i> Access Control</li>
+                                            <li><i class="bi bi-check-circle"></i> Profile & History</li>
+                                        </ul>
+                                    </div>
+                                    <div class="module-footer">
+                                        <a href="/rooms" class="btn btn-outline-primary-custom w-100">Manage Rooms →</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Module 2: Whiteboard -->
+                            <div class="col-sm-6 col-lg-4">
+                                <div class="module-card">
+                                    <div class="module-header">
+                                        <i class="bi bi-easel-fill"></i>
+                                        <h4>Real-Time Whiteboard</h4>
+                                    </div>
+                                    <div class="module-body">
+                                        <ul class="module-features">
+                                            <li><i class="bi bi-check-circle"></i> Multi-user Drawing</li>
+                                            <li><i class="bi bi-check-circle"></i> Shapes & Colors</li>
+                                            <li><i class="bi bi-check-circle"></i> Auto-Save & Export</li>
+                                            <li><i class="bi bi-check-circle"></i> Real-Time Sync</li>
+                                        </ul>
+                                    </div>
+                                    <div class="module-footer">
+                                        <a href="/rooms" class="btn btn-outline-primary-custom w-100">Open Whiteboard →</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Module 3: Communication -->
+                            <div class="col-sm-6 col-lg-4">
+                                <div class="module-card">
+                                    <div class="module-header">
+                                        <i class="bi bi-chat-dots-fill"></i>
+                                        <h4>Communication Hub</h4>
+                                    </div>
+                                    <div class="module-body">
+                                        <ul class="module-features">
+                                            <li><i class="bi bi-check-circle"></i> Text Chat & History</li>
+                                            <li><i class="bi bi-check-circle"></i> Audio/Video Calls</li>
+                                            <li><i class="bi bi-check-circle"></i> Screen Sharing</li>
+                                            <li><i class="bi bi-check-circle"></i> Reactions</li>
+                                        </ul>
+                                    </div>
+                                    <div class="module-footer">
+                                        <a href="/rooms" class="btn btn-outline-primary-custom w-100">Open Chat →</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Module 4: Study Materials -->
+                            <div class="col-sm-6 col-lg-4">
+                                <div class="module-card">
+                                    <div class="module-header">
+                                        <i class="bi bi-folder2-open-fill"></i>
+                                        <h4>Study Materials</h4>
+                                    </div>
+                                    <div class="module-body">
+                                        <ul class="module-features">
+                                            <li><i class="bi bi-check-circle"></i> Drag & Drop Upload</li>
+                                            <li><i class="bi bi-check-circle"></i> Shared Repository</li>
+                                            <li><i class="bi bi-check-circle"></i> PDFs, Images, Docs</li>
+                                            <li><i class="bi bi-check-circle"></i> Download & Versioning</li>
+                                        </ul>
+                                    </div>
+                                    <div class="module-footer">
+                                        <a href="/rooms" class="btn btn-outline-primary-custom w-100">Browse Files →</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Module 5: Polls & Quizzes -->
+                            <div class="col-sm-6 col-lg-4">
+                                <div class="module-card">
+                                    <div class="module-header">
+                                        <i class="bi bi-bar-chart-fill"></i>
+                                        <h4>Polls & Quizzes</h4>
+                                    </div>
+                                    <div class="module-body">
+                                        <ul class="module-features">
+                                            <li><i class="bi bi-check-circle"></i> Quick Poll Creation</li>
+                                            <li><i class="bi bi-check-circle"></i> Real-Time Voting</li>
+                                            <li><i class="bi bi-check-circle"></i> Live Results</li>
+                                            <li><i class="bi bi-check-circle"></i> Interactive Learning</li>
+                                        </ul>
+                                    </div>
+                                    <div class="module-footer">
+                                        <a href="/rooms" class="btn btn-outline-primary-custom w-100">Create Poll →</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Module 6: Focus & Productivity -->
+                            <div class="col-sm-6 col-lg-4">
+                                <div class="module-card">
+                                    <div class="module-header">
+                                        <i class="bi bi-graph-up"></i>
+                                        <h4>Focus & Productivity</h4>
+                                    </div>
+                                    <div class="module-body">
+                                        <ul class="module-features">
+                                            <li><i class="bi bi-check-circle"></i> Study Modes</li>
+                                            <li><i class="bi bi-check-circle"></i> Timers & Tracking</li>
+                                            <li><i class="bi bi-check-circle"></i> Analytics Dashboard</li>
+                                            <li><i class="bi bi-check-circle"></i> Streaks & Badges</li>
+                                        </ul>
+                                    </div>
+                                    <div class="module-footer">
+                                        <a href="/profile" class="btn btn-outline-primary-custom w-100">View Analytics →</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Stats Row (Responsive: 2 columns on tablet, 4 on desktop) -->
-                <div class="row g-3 mb-5">
-                    <div class="col-6 col-md-3">
-                        <div class="stats-card">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <p class="text-secondary mb-1 small">Study Hours</p>
-                                    <h2 class="fw-bold mb-0">127</h2>
-                                    <small class="text-success"><i class="bi bi-graph-up"></i> +12%</small>
-                                </div>
-                                <div class="stats-icon bg-primary-custom">
-                                    <i class="bi bi-clock-fill"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="stats-card">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <p class="text-secondary mb-1 small">Streak</p>
-                                    <h2 class="fw-bold mb-0">15</h2>
-                                    <small class="text-warning"><i class="bi bi-fire"></i> days</small>
-                                </div>
-                                <div class="stats-icon bg-warning">
-                                    <i class="bi bi-calendar-heart-fill"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="stats-card">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <p class="text-secondary mb-1 small">Active Rooms</p>
-                                    <h2 class="fw-bold mb-0">3</h2>
-                                    <small class="text-info"><i class="bi bi-people-fill"></i> 12 partners</small>
-                                </div>
-                                <div class="stats-icon bg-info">
-                                    <i class="bi bi-door-open-fill"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="stats-card">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <p class="text-secondary mb-1 small">Badges</p>
-                                    <h2 class="fw-bold mb-0">8</h2>
-                                    <small class="text-success"><i class="bi bi-award-fill"></i> +2 new</small>
-                                </div>
-                                <div class="stats-icon bg-danger">
-                                    <i class="bi bi-trophy-fill"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Key Modules (Responsive: 1 column mobile, 2 tablet, 3 desktop) -->
-                <h3 class="mb-3">📚 Key Modules</h3>
-                <div class="row g-3">
-                    <!-- Module 1 -->
-                    <div class="col-sm-6 col-lg-4">
-                        <div class="module-card">
-                            <div class="module-header">
-                                <i class="bi bi-people-fill fs-3"></i>
-                                <h4>User & Room Mgmt</h4>
-                            </div>
-                            <div class="module-body">
-                                <ul class="feature-list">
-                                    <li><i class="bi bi-shield-check text-success"></i> Secure Auth</li>
-                                    <li><i class="bi bi-door-open"></i> Create/Join Rooms</li>
-                                    <li><i class="bi bi-lock-fill"></i> Access Control</li>
-                                    <li><i class="bi bi-person-badge"></i> Profiles & History</li>
-                                </ul>
-                            </div>
-                            <div class="module-footer">
-                                <a href="/rooms" class="btn btn-outline-primary-custom w-100">Manage →</a>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Module 2 -->
-                    <div class="col-sm-6 col-lg-4">
-                        <div class="module-card">
-                            <div class="module-header">
-                                <i class="bi bi-easel-fill fs-3"></i>
-                                <h4>Real-Time Whiteboard</h4>
-                            </div>
-                            <div class="module-body">
-                                <ul class="feature-list">
-                                    <li><i class="bi bi-pencil"></i> Multi-user Drawing</li>
-                                    <li><i class="bi bi-brush"></i> Shapes & Colors</li>
-                                    <li><i class="bi bi-save"></i> Auto-Save & Export</li>
-                                    <li><i class="bi bi-arrow-repeat"></i> Real-Time Sync</li>
-                                </ul>
-                            </div>
-                            <div class="module-footer">
-                                <a href="#" class="btn btn-outline-primary-custom w-100">Open →</a>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Module 3 -->
-                    <div class="col-sm-6 col-lg-4">
-                        <div class="module-card">
-                            <div class="module-header">
-                                <i class="bi bi-chat-dots-fill fs-3"></i>
-                                <h4>Communication Hub</h4>
-                            </div>
-                            <div class="module-body">
-                                <ul class="feature-list">
-                                    <li><i class="bi bi-chat-text"></i> Text Chat & History</li>
-                                    <li><i class="bi bi-camera-video-fill"></i> Audio/Video Calls</li>
-                                    <li><i class="bi bi-share"></i> Screen Sharing</li>
-                                    <li><i class="bi bi-emoji-smile"></i> Reactions & Private Chat</li>
-                                </ul>
-                            </div>
-                            <div class="module-footer">
-                                <a href="#" class="btn btn-outline-primary-custom w-100">Open Chat →</a>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Module 4 -->
-                    <div class="col-sm-6 col-lg-4">
-                        <div class="module-card">
-                            <div class="module-header">
-                                <i class="bi bi-folder2-open-fill fs-3"></i>
-                                <h4>Study Materials</h4>
-                            </div>
-                            <div class="module-body">
-                                <ul class="feature-list">
-                                    <li><i class="bi bi-cloud-upload"></i> Drag & Drop</li>
-                                    <li><i class="bi bi-collection"></i> Shared Repository</li>
-                                    <li><i class="bi bi-file-earmark-pdf"></i> PDFs, Images</li>
-                                    <li><i class="bi bi-git"></i> Versioning & Download</li>
-                                </ul>
-                            </div>
-                            <div class="module-footer">
-                                <a href="#" class="btn btn-outline-primary-custom w-100">Browse →</a>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Module 5 -->
-                    <div class="col-sm-6 col-lg-4">
-                        <div class="module-card">
-                            <div class="module-header">
-                                <i class="bi bi-graph-up fs-3"></i>
-                                <h4>Focus & Productivity</h4>
-                            </div>
-                            <div class="module-body">
-                                <ul class="feature-list">
-                                    <li><i class="bi bi-eyedropper"></i> Study Modes</li>
-                                    <li><i class="bi bi-hourglass-split"></i> Timers & Tracking</li>
-                                    <li><i class="bi bi-bar-chart"></i> Analytics</li>
-                                    <li><i class="bi bi-fire"></i> Streaks & Badges</li>
-                                </ul>
-                            </div>
-                            <div class="module-footer">
-                                <a href="#" class="btn btn-outline-primary-custom w-100">Analytics →</a>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Module 6 -->
-                    <div class="col-sm-6 col-lg-4">
-                        <div class="module-card">
-                            <div class="module-header">
-                                <i class="bi bi-robot fs-3"></i>
-                                <h4>Interactive Learning</h4>
-                            </div>
-                            <div class="module-body">
-                                <ul class="feature-list">
-                                    <li><i class="bi bi-bar-chart-steps"></i> Polls & Quizzes</li>
-                                    <li><i class="bi bi-wifi"></i> Breakout Rooms</li>
-                                    <li><i class="bi bi-cpu"></i> AI Assistant</li>
-                                    <li><i class="bi bi-search"></i> Search & Results</li>
-                                </ul>
-                            </div>
-                            <div class="module-footer">
-                                <a href="#" class="btn btn-outline-primary-custom w-100">AI Assistant →</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>

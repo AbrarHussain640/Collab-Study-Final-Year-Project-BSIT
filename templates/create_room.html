@@ -1,32 +1,105 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <h3 class="card-title text-center">Create New Study Room</h3>
-                    <form method="POST">
-                        <div class="mb-3">
-                            <label class="form-label">Room Name</label>
-                            <input type="text" name="name" class="form-control" required>
+<div class="auth-page">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                
+                <!-- Back Link -->
+                <a href="/rooms" class="back-link mb-4">
+                    <i class="bi bi-arrow-left"></i> Back to Rooms
+                </a>
+
+                <!-- Create Room Card -->
+                <div class="auth-card animate-fade-in-scale">
+                    <div class="auth-card-body">
+                        
+                        <!-- Header -->
+                        <div class="auth-header text-center mb-4">
+                            <div class="auth-icon mb-3">
+                                <i class="bi bi-plus-circle"></i>
+                            </div>
+                            <h2>Create Study Room</h2>
+                            <p>Set up a new virtual study space</p>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Description (optional)</label>
-                            <textarea name="description" class="form-control" rows="3"></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Course Code (unique, e.g., CS101)</label>
-                            <input type="text" name="course_code" class="form-control" required>
-                            <div class="form-text">This code will be unique for each subject. Only one room per course code.</div>
-                        </div>
-                        <button type="submit" class="btn btn-primary-custom w-100">Create Room</button>
-                        <a href="/rooms" class="btn btn-secondary w-100 mt-2">Cancel</a>
-                    </form>
+
+                        <!-- Create Room Form -->
+                        <form method="POST">
+                            
+                            <!-- Room Name -->
+                            <div class="mb-3">
+                                <label for="name" class="form-label">
+                                    <i class="bi bi-bookmark"></i> Room Name
+                                </label>
+                                <input type="text" name="name" id="name" class="form-control form-control-lg" 
+                                       placeholder="e.g., CS101 Study Group" required>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="mb-3">
+                                <label for="description" class="form-label">
+                                    <i class="bi bi-text-paragraph"></i> Description (Optional)
+                                </label>
+                                <textarea name="description" id="description" class="form-control" 
+                                          rows="3" placeholder="What's this room about?"></textarea>
+                            </div>
+
+                            <!-- Course Code -->
+                            <div class="mb-3">
+                                <label for="course_code" class="form-label">
+                                    <i class="bi bi-hash"></i> Course Code
+                                </label>
+                                <input type="text" name="course_code" id="course_code" class="form-control form-control-lg" 
+                                       placeholder="e.g., CS101" required>
+                                <div class="form-text">Unique code for this subject. Only one room per course code.</div>
+                            </div>
+
+                            <!-- Private Room Toggle -->
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="protectCheckbox" name="protectCheckbox">
+                                    <label class="form-check-label" for="protectCheckbox">
+                                        <i class="bi bi-lock"></i> Password Protected Room
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Password Field -->
+                            <div class="mb-4" id="passwordField" style="display: none;">
+                                <label for="room_password" class="form-label">
+                                    <i class="bi bi-key"></i> Room Password
+                                </label>
+                                <input type="password" name="room_password" id="room_password" 
+                                       class="form-control form-control-lg" placeholder="Min 4 characters">
+                            </div>
+
+                            <!-- Submit -->
+                            <button type="submit" class="btn btn-primary-custom w-100 btn-lg mb-3">
+                                <i class="bi bi-plus-circle"></i> Create Room
+                            </button>
+
+                            <!-- Cancel -->
+                            <a href="/rooms" class="btn btn-outline-secondary w-100">Cancel</a>
+
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Password Toggle Script -->
+<script>
+    document.getElementById('protectCheckbox').addEventListener('change', function() {
+        const passwordField = document.getElementById('passwordField');
+        if (this.checked) {
+            passwordField.style.display = 'block';
+        } else {
+            passwordField.style.display = 'none';
+            document.querySelector('input[name="room_password"]').value = '';
+        }
+    });
+</script>
 {% endblock %}
