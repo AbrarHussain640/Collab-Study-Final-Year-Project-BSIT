@@ -201,7 +201,60 @@ def forgotPassword():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    return render_template('dashboard.html')
+    from datetime import datetime, timedelta
+    
+    # Real-time stats from database
+    created_rooms_count = Room.query.filter_by(created_by=current_user.id).count()
+    
+    # Total unique rooms
+    created_ids = {r.id for r in Room.query.filter_by(created_by=current_user.id).all()}
+    joined_ids = {r.id for r in current_user.joined_rooms}
+    total_rooms = len(created_ids | joined_ids)
+    
+    # Active rooms (rooms with activity in last 7 days)
+    week_ago = datetime.utcnow() - timedelta(days=7)
+    active_rooms = Room.query.filter(
+        (Room.created_by == current_user.id) | 
+        (Room.members.contains(current_user))
+    ).filter(Room.created_at >= week_ago).count()
+    if active_rooms == 0:
+        active_rooms = total_rooms  # Fallback
+    
+    # Total study sessions
+    total_sessions = StudyHistory.query.filter_by(user_id=current_user.id).count()
+    study_hours = total_sessions * 2  # Estimate: 2 hours per session
+    
+    # Study streak (unique days)
+    unique_days = set()
+    for h in StudyHistory.query.filter_by(user_id=current_user.id).all():
+        unique_days.add(h.timestamp.strftime('%Y-%m-%d'))
+    streak = len(unique_days)
+    if streak == 0:
+        streak = 1  # At least 1
+    
+    # Study partners (unique members in user's rooms)
+    partners = set()
+    for room in current_user.joined_rooms:
+        for member in room.members:
+            if member.id != current_user.id:
+                partners.add(member.id)
+    for room in Room.query.filter_by(created_by=current_user.id).all():
+        for member in room.members:
+            if member.id != current_user.id:
+                partners.add(member.id)
+    study_partners = len(partners)
+    
+    # Badges (based on activity)
+    badges = min(total_sessions, 10)
+    
+    return render_template('dashboard.html',
+                          created_rooms=created_rooms_count,
+                          total_rooms=total_rooms,
+                          active_rooms=active_rooms,
+                          study_hours=study_hours,
+                          streak=min(streak, 365),
+                          study_partners=study_partners,
+                          badges=badges)
 
 @app.route('/profile')
 @login_required
@@ -498,6 +551,46 @@ def handle_clear(data):
     if Room.query.get(int(room_id)).created_by == current_user.id:
         emit('clear_canvas', to=room_id)
 
+# ---------- Study Session Tracking ----------
+study_sessions = {}
+
+@socketio.on('join_room')
+def handle_join_room(data):
+    room_id = str(data['room_id'])
+    socket_join_room(room_id)
+    
+    # Track study session start
+    if current_user.id not in study_sessions:
+        study_sessions[current_user.id] = {
+            'start_time': datetime.utcnow(),
+            'room_id': room_id
+        }
+    
+    emit('joined_room', {'room_id': room_id}, to=request.sid)
+    room = Room.query.get(int(room_id))
+    user_id = current_user.id
+    can_control = room.created_by == user_id or user_id in whiteboard_permissions.get(room_id, [])
+    emit('permission_update', {'user_id': user_id, 'can_control': can_control}, to=request.sid)
+    if room_id in call_sessions and call_sessions[room_id]:
+        emit('call_already_active', {'caller_id': call_sessions[room_id][0]}, to=request.sid)
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    if current_user.is_authenticated and current_user.id in study_sessions:
+        session_data = study_sessions[current_user.id]
+        start_time = session_data['start_time']
+        duration_minutes = int((datetime.utcnow() - start_time).total_seconds() / 60)
+        
+        if duration_minutes > 0:
+            history = StudyHistory(
+                user_id=current_user.id,
+                room_id=int(session_data['room_id']),
+                action='studied'
+            )
+            db.session.add(history)
+            db.session.commit()
+        
+        del study_sessions[current_user.id]
 # Room
 @socketio.on('join_room')
 def handle_join(data):

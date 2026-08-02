@@ -74,7 +74,7 @@
                             <div class="row align-items-center">
                                 <div class="col-md-8">
                                     <h3>Welcome back, <span class="text-gradient">{{ current_user.username }}</span>! 👋</h3>
-                                    <p>Ready to collaborate? Here's your study overview for today.</p>
+                                    <p>Ready to collaborate? Here's your study overview.</p>
                                 </div>
                                 <div class="col-md-4 text-md-end mt-3 mt-md-0">
                                     <a href="/rooms" class="btn btn-primary-custom">
@@ -84,7 +84,7 @@
                             </div>
                         </div>
 
-                        <!-- Stats Row -->
+                        <!-- Stats Row - REAL VALUES FROM DATABASE -->
                         <div class="row g-3 mb-4">
                             <div class="col-6 col-lg-3">
                                 <div class="stat-card">
@@ -92,9 +92,11 @@
                                         <i class="bi bi-clock-fill"></i>
                                     </div>
                                     <div class="stat-info">
-                                        <h3>127</h3>
+                                        <h3>{{ study_hours }}</h3>
                                         <p>Study Hours</p>
-                                        <small class="text-primary-custom"><i class="bi bi-arrow-up"></i> 12%</small>
+                                        <small class="text-primary-custom">
+                                            <i class="bi bi-arrow-up"></i> Active
+                                        </small>
                                     </div>
                                 </div>
                             </div>
@@ -104,7 +106,7 @@
                                         <i class="bi bi-fire"></i>
                                     </div>
                                     <div class="stat-info">
-                                        <h3>15</h3>
+                                        <h3>{{ streak }}</h3>
                                         <p>Day Streak</p>
                                         <small style="color:#F59E0B;">Keep it up!</small>
                                     </div>
@@ -116,9 +118,9 @@
                                         <i class="bi bi-people-fill"></i>
                                     </div>
                                     <div class="stat-info">
-                                        <h3>3</h3>
+                                        <h3>{{ active_rooms }}</h3>
                                         <p>Active Rooms</p>
-                                        <small>12 partners</small>
+                                        <small>{{ study_partners }} partners</small>
                                     </div>
                                 </div>
                             </div>
@@ -128,9 +130,9 @@
                                         <i class="bi bi-trophy-fill"></i>
                                     </div>
                                     <div class="stat-info">
-                                        <h3>8</h3>
+                                        <h3>{{ badges }}</h3>
                                         <p>Badges Earned</p>
-                                        <small style="color:#10B981;">+2 new</small>
+                                        <small style="color:#10B981;">Keep learning!</small>
                                     </div>
                                 </div>
                             </div>
@@ -215,7 +217,7 @@
                                             <li><i class="bi bi-check-circle"></i> Drag & Drop Upload</li>
                                             <li><i class="bi bi-check-circle"></i> Shared Repository</li>
                                             <li><i class="bi bi-check-circle"></i> PDFs, Images, Docs</li>
-                                            <li><i class="bi bi-check-circle"></i> Download & Versioning</li>
+                                            <li><i class="bi bi-check-circle"></i> Download & Delete</li>
                                         </ul>
                                     </div>
                                     <div class="module-footer">
@@ -254,8 +256,8 @@
                                     </div>
                                     <div class="module-body">
                                         <ul class="module-features">
-                                            <li><i class="bi bi-check-circle"></i> Study Modes</li>
-                                            <li><i class="bi bi-check-circle"></i> Timers & Tracking</li>
+                                            <li><i class="bi bi-check-circle"></i> Study Timer</li>
+                                            <li><i class="bi bi-check-circle"></i> Session Tracking</li>
                                             <li><i class="bi bi-check-circle"></i> Analytics Dashboard</li>
                                             <li><i class="bi bi-check-circle"></i> Streaks & Badges</li>
                                         </ul>
