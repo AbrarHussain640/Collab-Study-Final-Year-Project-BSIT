@@ -3,18 +3,22 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_socketio import SocketIO, emit, join_room as socket_join_room, leave_room as socket_leave_room
 import bcrypt
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import random
 import string
 import uuid
 import mimetypes
+from groq import Groq
 
+# ============================================
+# APP INITIALIZE
+# ============================================
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-change-in-production'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024
 
 db = SQLAlchemy(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
@@ -23,6 +27,28 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message = 'Please log in first.'
+
+# ============================================
+# GROQ CHATBOT SETUP
+# ============================================
+groq_client = Groq(api_key="")
+
+GROQ_SYSTEM_PROMPT = """You are a strict study assistant for CollabStudy.
+
+CRITICAL INSTRUCTION: Match the input language of the user's latest prompt EXACTLY.
+
+RESPONSE FORMAT RULES:
+1. FOR PROGRAMMING/CODE QUESTIONS: Write code in proper code blocks with brief explanation
+2. FOR MATH QUESTIONS: Solve STEP BY STEP, show each step, end with **Answer:**
+3. FOR THEORY QUESTIONS: 2-3 concise sentences or bullet points
+4. FOR NON-ACADEMIC: Politely refuse, say you only answer study questions
+
+RULES:
+1. ONLY academic/study questions
+2. Match user language (ENGLISH or ROMAN URDU)
+3. Code: ALWAYS use ```language ``` blocks
+4. Math: ALWAYS step-by-step with **Answer:**
+5. Be concise but complete"""
 
 # ---------- Helper Functions ----------
 def generate_room_code(length=6):
@@ -33,18 +59,12 @@ def can_access_room(user, room):
     return user.id == room.created_by or user in room.members
 
 def get_file_icon(file_type):
-    if file_type and file_type.startswith('image/'):
-        return 'bi bi-file-image-fill'
-    elif file_type == 'application/pdf':
-        return 'bi bi-file-pdf-fill'
-    elif file_type in ['application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']:
-        return 'bi bi-file-word-fill'
-    elif file_type in ['application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation']:
-        return 'bi bi-file-ppt-fill'
-    elif file_type in ['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']:
-        return 'bi bi-file-excel-fill'
-    else:
-        return 'bi bi-file-earmark-fill'
+    if file_type and file_type.startswith('image/'): return 'bi bi-file-image-fill'
+    elif file_type == 'application/pdf': return 'bi bi-file-pdf-fill'
+    elif 'word' in str(file_type): return 'bi bi-file-word-fill'
+    elif 'powerpoint' in str(file_type) or 'presentation' in str(file_type): return 'bi bi-file-ppt-fill'
+    elif 'excel' in str(file_type) or 'spreadsheet' in str(file_type): return 'bi bi-file-excel-fill'
+    else: return 'bi bi-file-earmark-fill'
 
 # ---------- Database Models ----------
 room_members = db.Table('room_members',
@@ -57,12 +77,10 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
-
     def __init__(self, username, email, plain_password):
         self.username = username
         self.email = email
         self.password_hash = bcrypt.hashpw(plain_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-
     def check_password(self, plain_password):
         return bcrypt.checkpw(plain_password.encode('utf-8'), self.password_hash.encode('utf-8'))
 
@@ -118,6 +136,7 @@ whiteboard_permissions = {}
 screen_share_active = {}
 call_sessions = {}
 active_polls = {}
+study_sessions = {}
 
 # ---------- Create Tables ----------
 with app.app_context():
@@ -134,17 +153,13 @@ def welcome():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'GET':
-        return render_template('login.html')
+    if request.method == 'GET': return render_template('login.html')
     login_input = request.form.get('username', '').strip()
     password = request.form.get('password', '')
     if not login_input or not password:
         flash('Both fields are required.', 'danger')
         return redirect(url_for('login'))
-    if '@' in login_input:
-        user = User.query.filter_by(email=login_input).first()
-    else:
-        user = User.query.filter_by(username=login_input).first()
+    user = User.query.filter_by(email=login_input).first() if '@' in login_input else User.query.filter_by(username=login_input).first()
     if not user or not user.check_password(password):
         flash('Invalid credentials.', 'danger')
         return redirect(url_for('login'))
@@ -154,8 +169,7 @@ def login():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    if request.method == 'GET':
-        return render_template('register.html')
+    if request.method == 'GET': return render_template('register.html')
     username = request.form.get('username', '').strip()
     email = request.form.get('email', '').strip()
     password = request.form.get('password', '')
@@ -175,8 +189,7 @@ def register():
     if User.query.filter_by(email=email).first():
         flash('Email already registered.', 'danger')
         return redirect(url_for('register'))
-    new_user = User(username=username, email=email, plain_password=password)
-    db.session.add(new_user)
+    db.session.add(User(username=username, email=email, plain_password=password))
     db.session.commit()
     flash('Registration successful! Please log in.', 'success')
     return redirect(url_for('login'))
@@ -190,8 +203,7 @@ def logout():
 
 @app.route('/forgotPassword', methods=['GET', 'POST'])
 def forgotPassword():
-    if request.method == 'GET':
-        return render_template('forgotPassword.html')
+    if request.method == 'GET': return render_template('forgotPassword.html')
     flash('Password reset feature coming soon.', 'info')
     return redirect(url_for('login'))
 
@@ -201,60 +213,27 @@ def forgotPassword():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    from datetime import datetime, timedelta
-    
-    # Real-time stats from database
     created_rooms_count = Room.query.filter_by(created_by=current_user.id).count()
-    
-    # Total unique rooms
     created_ids = {r.id for r in Room.query.filter_by(created_by=current_user.id).all()}
     joined_ids = {r.id for r in current_user.joined_rooms}
     total_rooms = len(created_ids | joined_ids)
-    
-    # Active rooms (rooms with activity in last 7 days)
     week_ago = datetime.utcnow() - timedelta(days=7)
-    active_rooms = Room.query.filter(
-        (Room.created_by == current_user.id) | 
-        (Room.members.contains(current_user))
-    ).filter(Room.created_at >= week_ago).count()
-    if active_rooms == 0:
-        active_rooms = total_rooms  # Fallback
-    
-    # Total study sessions
+    active_rooms = Room.query.filter((Room.created_by == current_user.id) | (Room.members.contains(current_user))).filter(Room.created_at >= week_ago).count() or total_rooms
     total_sessions = StudyHistory.query.filter_by(user_id=current_user.id).count()
-    study_hours = total_sessions * 2  # Estimate: 2 hours per session
-    
-    # Study streak (unique days)
+    study_hours = total_sessions * 2
     unique_days = set()
-    for h in StudyHistory.query.filter_by(user_id=current_user.id).all():
-        unique_days.add(h.timestamp.strftime('%Y-%m-%d'))
-    streak = len(unique_days)
-    if streak == 0:
-        streak = 1  # At least 1
-    
-    # Study partners (unique members in user's rooms)
+    for h in StudyHistory.query.filter_by(user_id=current_user.id).all(): unique_days.add(h.timestamp.strftime('%Y-%m-%d'))
+    streak = len(unique_days) or 1
     partners = set()
     for room in current_user.joined_rooms:
         for member in room.members:
-            if member.id != current_user.id:
-                partners.add(member.id)
+            if member.id != current_user.id: partners.add(member.id)
     for room in Room.query.filter_by(created_by=current_user.id).all():
         for member in room.members:
-            if member.id != current_user.id:
-                partners.add(member.id)
+            if member.id != current_user.id: partners.add(member.id)
     study_partners = len(partners)
-    
-    # Badges (based on activity)
     badges = min(total_sessions, 10)
-    
-    return render_template('dashboard.html',
-                          created_rooms=created_rooms_count,
-                          total_rooms=total_rooms,
-                          active_rooms=active_rooms,
-                          study_hours=study_hours,
-                          streak=min(streak, 365),
-                          study_partners=study_partners,
-                          badges=badges)
+    return render_template('dashboard.html', created_rooms=created_rooms_count, total_rooms=total_rooms, active_rooms=active_rooms, study_hours=study_hours, streak=min(streak, 365), study_partners=study_partners, badges=badges)
 
 @app.route('/profile')
 @login_required
@@ -263,6 +242,30 @@ def profile():
     created_rooms = Room.query.filter_by(created_by=current_user.id).all()
     joined_rooms = current_user.joined_rooms
     return render_template('profile.html', user=current_user, history=history, created_rooms=created_rooms, joined_rooms=joined_rooms)
+
+# ============================================
+# GROQ CHATBOT ROUTE
+# ============================================
+@app.route('/chatbot-chat', methods=['POST'])
+@login_required
+def chatbot_chat():
+    data = request.get_json() or {}
+    user_message = data.get("message", "").strip()
+    if not user_message: return jsonify({"reply": "Please enter a valid message!"})
+    try:
+        completion = groq_client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[{"role": "system", "content": GROQ_SYSTEM_PROMPT}, {"role": "user", "content": user_message}],
+            temperature=0.2, max_tokens=500
+        )
+        reply = completion.choices[0].message.content.strip()
+        room_id = data.get('room_id', 1)
+        db.session.add(ChatMessage(room_id=int(room_id), user_id=current_user.id, message=f"🧑 {current_user.username}: {user_message}"))
+        db.session.add(ChatMessage(room_id=int(room_id), user_id=current_user.id, message=f"🤖 CollabBot: {reply}"))
+        db.session.commit()
+    except Exception as e:
+        reply = f"Error: {str(e)}"
+    return jsonify({"reply": reply})
 
 # ============================================
 # ROOM ROUTES
@@ -295,21 +298,13 @@ def create_room():
             flash('Password must be at least 4 characters.', 'danger')
             return redirect(url_for('create_room'))
         room_code = generate_room_code()
-        while Room.query.filter_by(room_code=room_code).first():
-            room_code = generate_room_code()
-        hashed_pw = None
-        if is_private and room_password:
-            hashed_pw = bcrypt.hashpw(room_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-        new_room = Room(
-            name=name, description=description, course_code=course_code,
-            room_code=room_code, created_by=current_user.id,
-            is_private=is_private, room_password=hashed_pw
-        )
+        while Room.query.filter_by(room_code=room_code).first(): room_code = generate_room_code()
+        hashed_pw = bcrypt.hashpw(room_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8') if is_private and room_password else None
+        new_room = Room(name=name, description=description, course_code=course_code, room_code=room_code, created_by=current_user.id, is_private=is_private, room_password=hashed_pw)
         db.session.add(new_room)
         db.session.commit()
         new_room.members.append(current_user)
-        history = StudyHistory(user_id=current_user.id, room_id=new_room.id, action='created')
-        db.session.add(history)
+        db.session.add(StudyHistory(user_id=current_user.id, room_id=new_room.id, action='created'))
         db.session.commit()
         flash(f'Room "{name}" created! Code: {room_code}', 'success')
         return redirect(url_for('rooms'))
@@ -328,8 +323,7 @@ def join_room():
         flash('Invalid room code.', 'danger')
         return redirect(url_for('rooms'))
     if room.is_private:
-        if not password:
-            return render_template('password_prompt.html', room_code=code)
+        if not password: return render_template('password_prompt.html', room_code=code)
         if not room.room_password or not bcrypt.checkpw(password.encode('utf-8'), room.room_password.encode('utf-8')):
             flash('Incorrect room password.', 'danger')
             return redirect(url_for('rooms'))
@@ -337,8 +331,7 @@ def join_room():
         flash('Already a member.', 'info')
         return redirect(url_for('room_detail', room_id=room.id))
     room.members.append(current_user)
-    history = StudyHistory(user_id=current_user.id, room_id=room.id, action='joined')
-    db.session.add(history)
+    db.session.add(StudyHistory(user_id=current_user.id, room_id=room.id, action='joined'))
     db.session.commit()
     flash(f'Joined "{room.name}"!', 'success')
     return redirect(url_for('room_detail', room_id=room.id))
@@ -371,51 +364,26 @@ def delete_room(room_id):
 @login_required
 def room_files(room_id):
     room = Room.query.get_or_404(room_id)
-    if not can_access_room(current_user, room):
-        return jsonify({'error': 'Access denied'}), 403
+    if not can_access_room(current_user, room): return jsonify({'error': 'Access denied'}), 403
     files = StudyMaterial.query.filter_by(room_id=room_id).order_by(StudyMaterial.uploaded_at.desc()).all()
-    return jsonify({'files': [{
-        'id': f.id, 'original_filename': f.original_filename,
-        'file_type': f.file_type or '', 'file_size': f.file_size,
-        'uploaded_at': f.uploaded_at.strftime('%Y-%m-%d %H:%M'),
-        'uploader': f.user.username, 'is_uploader': f.user_id == current_user.id,
-        'is_host': current_user.id == room.created_by,
-        'file_icon': get_file_icon(f.file_type)
-    } for f in files]})
+    return jsonify({'files': [{'id': f.id, 'original_filename': f.original_filename, 'file_type': f.file_type or '', 'file_size': f.file_size, 'uploaded_at': f.uploaded_at.strftime('%Y-%m-%d %H:%M'), 'uploader': f.user.username, 'is_uploader': f.user_id == current_user.id, 'is_host': current_user.id == room.created_by, 'file_icon': get_file_icon(f.file_type)} for f in files]})
 
 @app.route('/rooms/<int:room_id>/upload', methods=['POST'])
 @login_required
 def upload_file(room_id):
     room = Room.query.get_or_404(room_id)
-    if not can_access_room(current_user, room):
-        return jsonify({'error': 'Access denied'}), 403
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file'}), 400
+    if not can_access_room(current_user, room): return jsonify({'error': 'Access denied'}), 403
+    if 'file' not in request.files: return jsonify({'error': 'No file'}), 400
     file = request.files['file']
-    if file.filename == '':
-        return jsonify({'error': 'No file'}), 400
+    if file.filename == '': return jsonify({'error': 'No file'}), 400
     upload_folder = os.path.join('uploads', f'room_{room_id}')
     os.makedirs(upload_folder, exist_ok=True)
-    ext = os.path.splitext(file.filename)[1]
-    stored = f"{uuid.uuid4().hex}{ext}"
-    file_path = os.path.join(upload_folder, stored)
-    file.save(file_path)
-    new_file = StudyMaterial(
-        room_id=room_id, user_id=current_user.id,
-        original_filename=file.filename, stored_filename=stored,
-        file_type=file.content_type or mimetypes.guess_type(file.filename)[0] or 'application/octet-stream',
-        file_size=os.path.getsize(file_path)
-    )
+    stored = f"{uuid.uuid4().hex}{os.path.splitext(file.filename)[1]}"
+    file.save(os.path.join(upload_folder, stored))
+    new_file = StudyMaterial(room_id=room_id, user_id=current_user.id, original_filename=file.filename, stored_filename=stored, file_type=file.content_type or mimetypes.guess_type(file.filename)[0] or 'application/octet-stream', file_size=os.path.getsize(os.path.join(upload_folder, stored)))
     db.session.add(new_file)
     db.session.commit()
-    return jsonify({'success': True, 'file': {
-        'id': new_file.id, 'original_filename': new_file.original_filename,
-        'file_type': new_file.file_type, 'file_size': new_file.file_size,
-        'uploaded_at': new_file.uploaded_at.strftime('%Y-%m-%d %H:%M'),
-        'uploader': current_user.username, 'is_uploader': True,
-        'is_host': current_user.id == room.created_by,
-        'file_icon': get_file_icon(new_file.file_type)
-    }}), 201
+    return jsonify({'success': True, 'file': {'id': new_file.id, 'original_filename': new_file.original_filename, 'file_type': new_file.file_type, 'file_size': new_file.file_size, 'uploaded_at': new_file.uploaded_at.strftime('%Y-%m-%d %H:%M'), 'uploader': current_user.username, 'is_uploader': True, 'is_host': current_user.id == room.created_by, 'file_icon': get_file_icon(new_file.file_type)}}), 201
 
 @app.route('/rooms/<int:room_id>/download/<int:file_id>')
 @login_required
@@ -435,14 +403,11 @@ def download_file(room_id, file_id):
 @login_required
 def delete_file(room_id, file_id):
     room = Room.query.get_or_404(room_id)
-    if not can_access_room(current_user, room):
-        return jsonify({'error': 'Access denied'}), 403
+    if not can_access_room(current_user, room): return jsonify({'error': 'Access denied'}), 403
     file = StudyMaterial.query.get_or_404(file_id)
-    if file.user_id != current_user.id and current_user.id != room.created_by:
-        return jsonify({'error': 'Permission denied'}), 403
+    if file.user_id != current_user.id and current_user.id != room.created_by: return jsonify({'error': 'Permission denied'}), 403
     file_path = os.path.join('uploads', f'room_{room_id}', file.stored_filename)
-    if os.path.exists(file_path):
-        os.remove(file_path)
+    if os.path.exists(file_path): os.remove(file_path)
     db.session.delete(file)
     db.session.commit()
     return jsonify({'success': True})
@@ -451,29 +416,17 @@ def delete_file(room_id, file_id):
 # DEV ROUTES
 # ============================================
 @app.route('/dev/users')
-def dev_users():
-    return render_template('dev_users.html', users=User.query.all())
+def dev_users(): return render_template('dev_users.html', users=User.query.all())
 
 @app.route('/dev/user/add', methods=['GET', 'POST'])
 def dev_add_user():
     if request.method == 'POST':
-        u = request.form['username']; e = request.form['email']
-        p = request.form['password']; c = request.form['confirm']
-        if not u or not e or not p: 
-            flash('All fields required.', 'danger')
-            return redirect(url_for('dev_add_user'))
-        if p != c: 
-            flash('Passwords do not match.', 'danger')
-            return redirect(url_for('dev_add_user'))
-        if len(p) < 8: 
-            flash('Min 8 characters.', 'danger')
-            return redirect(url_for('dev_add_user'))
-        if User.query.filter_by(username=u).first(): 
-            flash('Username exists.', 'danger')
-            return redirect(url_for('dev_add_user'))
-        if User.query.filter_by(email=e).first(): 
-            flash('Email exists.', 'danger')
-            return redirect(url_for('dev_add_user'))
+        u, e, p, c = request.form['username'], request.form['email'], request.form['password'], request.form['confirm']
+        if not u or not e or not p: flash('All fields required.', 'danger'); return redirect(url_for('dev_add_user'))
+        if p != c: flash('Passwords do not match.', 'danger'); return redirect(url_for('dev_add_user'))
+        if len(p) < 8: flash('Min 8 characters.', 'danger'); return redirect(url_for('dev_add_user'))
+        if User.query.filter_by(username=u).first(): flash('Username exists.', 'danger'); return redirect(url_for('dev_add_user'))
+        if User.query.filter_by(email=e).first(): flash('Email exists.', 'danger'); return redirect(url_for('dev_add_user'))
         db.session.add(User(username=u, email=e, plain_password=p))
         db.session.commit()
         flash(f'User {u} added.', 'success')
@@ -484,11 +437,9 @@ def dev_add_user():
 def dev_edit_user(user_id):
     user = User.query.get_or_404(user_id)
     if request.method == 'POST':
-        user.username = request.form['username']
-        user.email = request.form['email']
+        user.username, user.email = request.form['username'], request.form['email']
         pw = request.form.get('password', '')
-        if pw and len(pw) >= 8:
-            user.password_hash = bcrypt.hashpw(pw.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        if pw and len(pw) >= 8: user.password_hash = bcrypt.hashpw(pw.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         db.session.commit()
         flash(f'User {user.username} updated.', 'success')
         return redirect(url_for('dev_users'))
@@ -505,11 +456,9 @@ def dev_delete_user(user_id):
 # ============================================
 # SOCKET EVENTS
 # ============================================
-
 @socketio.on('chat_message')
 def handle_chat(data):
-    room_id = str(data['room_id'])
-    msg = data['message'].strip()
+    room_id, msg = str(data['room_id']), data['message'].strip()
     if not msg: return
     room = Room.query.get(int(room_id))
     if not room: return
@@ -519,13 +468,11 @@ def handle_chat(data):
 
 @socketio.on('load_chat_history')
 def handle_chat_history(data):
-    room_id = str(data['room_id'])
-    room = Room.query.get(int(room_id))
+    room = Room.query.get(int(data['room_id']))
     if not room: return
     msgs = ChatMessage.query.filter_by(room_id=room.id).order_by(ChatMessage.timestamp.asc()).limit(100).all()
     emit('chat_history', {'messages': [{'username': m.user.username, 'message': m.message, 'timestamp': m.timestamp.strftime('%I:%M %p'), 'user_id': m.user_id} for m in msgs]}, to=request.sid)
 
-# Whiteboard
 @socketio.on('save_whiteboard')
 def handle_save_wb(data):
     os.makedirs('whiteboard_data', exist_ok=True)
@@ -547,82 +494,46 @@ def handle_draw(data):
 
 @socketio.on('clear_canvas')
 def handle_clear(data):
-    room_id = str(data['room_id'])
-    if Room.query.get(int(room_id)).created_by == current_user.id:
-        emit('clear_canvas', to=room_id)
-
-# ---------- Study Session Tracking ----------
-study_sessions = {}
+    if Room.query.get(int(data['room_id'])).created_by == current_user.id: emit('clear_canvas', to=str(data['room_id']))
 
 @socketio.on('join_room')
-def handle_join_room(data):
+def handle_join(data):
     room_id = str(data['room_id'])
     socket_join_room(room_id)
-    
-    # Track study session start
-    if current_user.id not in study_sessions:
-        study_sessions[current_user.id] = {
-            'start_time': datetime.utcnow(),
-            'room_id': room_id
-        }
-    
+    if current_user.id not in study_sessions: study_sessions[current_user.id] = {'start_time': datetime.utcnow(), 'room_id': room_id}
     emit('joined_room', {'room_id': room_id}, to=request.sid)
     room = Room.query.get(int(room_id))
-    user_id = current_user.id
-    can_control = room.created_by == user_id or user_id in whiteboard_permissions.get(room_id, [])
-    emit('permission_update', {'user_id': user_id, 'can_control': can_control}, to=request.sid)
-    if room_id in call_sessions and call_sessions[room_id]:
-        emit('call_already_active', {'caller_id': call_sessions[room_id][0]}, to=request.sid)
+    can = room.created_by == current_user.id or current_user.id in whiteboard_permissions.get(room_id, [])
+    emit('permission_update', {'user_id': current_user.id, 'can_control': can}, to=request.sid)
+    if room_id in call_sessions and call_sessions[room_id]: emit('call_already_active', {'caller_id': call_sessions[room_id][0]}, to=request.sid)
 
 @socketio.on('disconnect')
 def handle_disconnect():
     if current_user.is_authenticated and current_user.id in study_sessions:
         session_data = study_sessions[current_user.id]
-        start_time = session_data['start_time']
-        duration_minutes = int((datetime.utcnow() - start_time).total_seconds() / 60)
-        
+        duration_minutes = int((datetime.utcnow() - session_data['start_time']).total_seconds() / 60)
         if duration_minutes > 0:
-            history = StudyHistory(
-                user_id=current_user.id,
-                room_id=int(session_data['room_id']),
-                action='studied'
-            )
-            db.session.add(history)
+            db.session.add(StudyHistory(user_id=current_user.id, room_id=int(session_data['room_id']), action='studied'))
             db.session.commit()
-        
         del study_sessions[current_user.id]
-# Room
-@socketio.on('join_room')
-def handle_join(data):
-    room_id = str(data['room_id'])
-    socket_join_room(room_id)
-    emit('joined_room', {'room_id': room_id}, to=request.sid)
-    room = Room.query.get(int(room_id))
-    can = room.created_by == current_user.id or current_user.id in whiteboard_permissions.get(room_id, [])
-    emit('permission_update', {'user_id': current_user.id, 'can_control': can}, to=request.sid)
 
 @socketio.on('toggle_permission')
 def handle_perm(data):
-    room_id = str(data['room_id']); uid = data['user_id']
+    room_id, uid = str(data['room_id']), data['user_id']
     if Room.query.get(int(room_id)).created_by != current_user.id: return
     if room_id not in whiteboard_permissions: whiteboard_permissions[room_id] = []
     if uid in whiteboard_permissions[room_id]: whiteboard_permissions[room_id].remove(uid); can = False
     else: whiteboard_permissions[room_id].append(uid); can = True
     emit('permission_update', {'user_id': uid, 'can_control': can}, to=room_id)
 
-# Tools
 @socketio.on('tool_started')
-def handle_tool_start(data):
-    emit('tool_started', {'tool': data['tool']}, to=str(data['room_id']), skip_sid=request.sid)
+def handle_tool_start(data): emit('tool_started', {'tool': data['tool']}, to=str(data['room_id']), skip_sid=request.sid)
 
 @socketio.on('tool_stopped')
-def handle_tool_stop(data):
-    emit('tool_stopped', {'tool': data['tool']}, to=str(data['room_id']), skip_sid=request.sid)
+def handle_tool_stop(data): emit('tool_stopped', {'tool': data['tool']}, to=str(data['room_id']), skip_sid=request.sid)
 
-# Screen Share
 @socketio.on('screen_frame')
-def handle_frame(data):
-    emit('screen_frame', {'frame': data['frame']}, to=str(data['room_id']), skip_sid=request.sid)
+def handle_frame(data): emit('screen_frame', {'frame': data['frame']}, to=str(data['room_id']), skip_sid=request.sid)
 
 @socketio.on('screen_share_started')
 def handle_ss_start(data):
@@ -634,7 +545,6 @@ def handle_ss_stop(data):
     screen_share_active[str(data['room_id'])] = False
     emit('tool_stopped', {'tool': 'screen_share'}, to=str(data['room_id']), skip_sid=request.sid)
 
-# Call
 @socketio.on('call_start')
 def handle_call_start(data):
     rid = str(data['room_id'])
@@ -664,7 +574,6 @@ def handle_call_end(data):
     if rid in call_sessions and current_user.id in call_sessions[rid]: call_sessions[rid].remove(current_user.id)
     emit('user_left_call', {'user_id': current_user.id}, to=rid, skip_sid=request.sid)
 
-# Reactions
 @socketio.on('raise_hand')
 def handle_rh(data): emit('hand_raised', {'user_id': current_user.id, 'username': current_user.username}, to=str(data['room_id']))
 
@@ -674,20 +583,17 @@ def handle_lh(data): emit('hand_lowered', {'user_id': current_user.id}, to=str(d
 @socketio.on('send_reaction')
 def handle_reaction(data): emit('reaction_received', {'user_id': current_user.id, 'username': current_user.username, 'emoji': data['emoji']}, to=str(data['room_id']))
 
-# Polls
 @socketio.on('create_poll')
 def handle_create_poll(data):
     rid = int(data['room_id'])
-    room = Room.query.get(rid)
-    if not room or room.created_by != current_user.id: return
+    if not (room := Room.query.get(rid)) or room.created_by != current_user.id: return
     active_polls[rid] = {'question': data['question'], 'options': data['options'], 'votes': {o: 0 for o in data['options']}, 'voters': {}, 'is_active': True, 'created_by': current_user.username}
     emit('poll_created', {'question': data['question'], 'options': data['options'], 'created_by': current_user.username}, to=str(rid))
 
 @socketio.on('vote_poll')
 def handle_vote(data):
-    rid = int(data['room_id']); opt = data['option']
-    poll = active_polls.get(rid)
-    if not poll or not poll['is_active']: return
+    rid, opt = int(data['room_id']), data['option']
+    if not (poll := active_polls.get(rid)) or not poll['is_active']: return
     uid = current_user.id
     if uid in poll['voters']: poll['votes'][poll['voters'][uid]] -= 1
     poll['voters'][uid] = opt; poll['votes'][opt] += 1
@@ -697,14 +603,12 @@ def handle_vote(data):
 def handle_close_poll(data):
     rid = int(data['room_id'])
     if Room.query.get(rid).created_by != current_user.id: return
-    poll = active_polls.get(rid)
-    if poll: poll['is_active'] = False; emit('poll_closed', {'votes': poll['votes'], 'total_votes': sum(poll['votes'].values())}, to=str(rid))
+    if poll := active_polls.get(rid): poll['is_active'] = False; emit('poll_closed', {'votes': poll['votes'], 'total_votes': sum(poll['votes'].values())}, to=str(rid))
 
 @socketio.on('load_poll')
 def handle_load_poll(data):
-    rid = int(data['room_id'])
-    poll = active_polls.get(rid)
-    if poll: emit('poll_loaded', {'question': poll['question'], 'options': poll['options'], 'votes': poll['votes'], 'is_active': poll['is_active'], 'created_by': poll['created_by']}, to=request.sid)
+    if poll := active_polls.get(int(data['room_id'])):
+        emit('poll_loaded', {'question': poll['question'], 'options': poll['options'], 'votes': poll['votes'], 'is_active': poll['is_active'], 'created_by': poll['created_by']}, to=request.sid)
 
 @socketio.on('ping')
 def handle_ping(data): emit('pong', {}, to=request.sid)
