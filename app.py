@@ -413,45 +413,61 @@ def delete_file(room_id, file_id):
     return jsonify({'success': True})
 
 # ============================================
-# DEV ROUTES
+# STUDY TIMER
 # ============================================
-@app.route('/dev/users')
-def dev_users(): return render_template('dev_users.html', users=User.query.all())
+timer_sessions = {}  
 
-@app.route('/dev/user/add', methods=['GET', 'POST'])
-def dev_add_user():
-    if request.method == 'POST':
-        u, e, p, c = request.form['username'], request.form['email'], request.form['password'], request.form['confirm']
-        if not u or not e or not p: flash('All fields required.', 'danger'); return redirect(url_for('dev_add_user'))
-        if p != c: flash('Passwords do not match.', 'danger'); return redirect(url_for('dev_add_user'))
-        if len(p) < 8: flash('Min 8 characters.', 'danger'); return redirect(url_for('dev_add_user'))
-        if User.query.filter_by(username=u).first(): flash('Username exists.', 'danger'); return redirect(url_for('dev_add_user'))
-        if User.query.filter_by(email=e).first(): flash('Email exists.', 'danger'); return redirect(url_for('dev_add_user'))
-        db.session.add(User(username=u, email=e, plain_password=p))
-        db.session.commit()
-        flash(f'User {u} added.', 'success')
-        return redirect(url_for('dev_users'))
-    return render_template('dev_user_form.html', title='Add User', user=None)
+@socketio.on('start_timer')
+def handle_start_timer(data):
+    room_id = str(data['room_id'])
+    timer_type = data.get('type', 'study')  
+    
+    if timer_type == 'study':
+        duration = 25 * 60  
+    else:
+        duration = 5 * 60   
+    
+    timer_sessions[room_id] = {
+        'type': timer_type,
+        'duration': duration,
+        'start_time': datetime.utcnow(),
+        'is_running': True,
+        'started_by': current_user.username
+    }
+    
+    emit('timer_started', {
+        'type': timer_type,
+        'duration': duration,
+        'started_by': current_user.username
+    }, to=room_id)
 
-@app.route('/dev/user/edit/<int:user_id>', methods=['GET', 'POST'])
-def dev_edit_user(user_id):
-    user = User.query.get_or_404(user_id)
-    if request.method == 'POST':
-        user.username, user.email = request.form['username'], request.form['email']
-        pw = request.form.get('password', '')
-        if pw and len(pw) >= 8: user.password_hash = bcrypt.hashpw(pw.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-        db.session.commit()
-        flash(f'User {user.username} updated.', 'success')
-        return redirect(url_for('dev_users'))
-    return render_template('dev_user_form.html', title='Edit User', user=user)
+@socketio.on('pause_timer')
+def handle_pause_timer(data):
+    room_id = str(data['room_id'])
+    if room_id in timer_sessions:
+        timer_sessions[room_id]['is_running'] = False
+        emit('timer_paused', {'message': 'Timer paused'}, to=room_id)
 
-@app.route('/dev/user/delete/<int:user_id>')
-def dev_delete_user(user_id):
-    user = User.query.get_or_404(user_id)
-    db.session.delete(user)
-    db.session.commit()
-    flash(f'User {user.username} deleted.', 'danger')
-    return redirect(url_for('dev_users'))
+@socketio.on('reset_timer')
+def handle_reset_timer(data):
+    room_id = str(data['room_id'])
+    if room_id in timer_sessions:
+        del timer_sessions[room_id]
+        emit('timer_reset', {'message': 'Timer reset'}, to=room_id)
+
+@socketio.on('get_timer')
+def handle_get_timer(data):
+    room_id = str(data['room_id'])
+    if room_id in timer_sessions:
+        timer = timer_sessions[room_id]
+        elapsed = (datetime.utcnow() - timer['start_time']).total_seconds()
+        remaining = max(0, timer['duration'] - elapsed)
+        emit('timer_update', {
+            'type': timer['type'],
+            'remaining': int(remaining),
+            'is_running': timer['is_running'],
+            'started_by': timer['started_by']
+        }, to=request.sid)
 
 # ============================================
 # SOCKET EVENTS
